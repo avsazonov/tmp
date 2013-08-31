@@ -1,0 +1,43 @@
+''use plantuml.com to view
+@startuml
+
+FieldUnit --|> GameObject
+FieldUnit --|> Renderable
+
+'Tower --|> FieldUnit
+'TowerSlot --|> FieldUnit
+'Enemy --|> FieldUnit
+'PathCell --|> FieldUnit
+'BackGroundCell --|> FieldUnit
+'Shot --|> FieldUnit
+
+BattleField --|> GameObject
+BattleField "1" *-- "many" FieldUnit
+
+GameProcessor o-- GameRenderer : aggregates
+GameProcessor o-- GameMode  : aggregates
+
+GameMode o-- GameControls  : aggregates
+GameMode o-- BattleField  : aggregates
+GameMode o-- WorldCreator  : aggregates
+GameMode o-- WorldProcessor  : aggregates
+
+'PreparingFieldMode --|> GameMode
+'AttackingRunMode --|> GameMode
+'GameStatisticsMode --|> GameMode
+
+Setting "many" *-- "1" GameObject : composition
+Renderable "1" *-- "1" DrawHelper : composition
+
+GameControl --|> GameObject
+GameControl --|> Renderable
+
+'PlayButton --|> GameControl
+'TowerChoiceMenu --|> GameControl
+'TimerBar --|> GameControl
+'StatisticsBar --|> GameControl
+'GameFinalStatistics --|> GameControl
+
+GameControls "1" *-- "many" GameControl : composition
+
+@enduml

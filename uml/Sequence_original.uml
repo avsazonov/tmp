@@ -1,0 +1,21 @@
+''use plantuml.com to view
+
+@startuml
+
+== Level start ==
+main_thread -> world_creator : create
+main_thread -> DrawHelper : construct
+main_thread -> game : initialize
+main_thread -> game : run
+game -> game_mode : processTap
+game -> game_mode : processStep
+game_mode -> world_processor : generateStep
+game -> game_renderer : renderBattleAndControls
+game_renderer -> field_unit : render
+game_renderer -> game_control : render
+game --> main_thread: repeat
+main_thread -> game : finalize
+main_thread -> DrawHelper : destruct
+== Level repeat or exit ==
+
+@enduml
