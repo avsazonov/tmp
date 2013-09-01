@@ -227,28 +227,16 @@ void WorldProcessor::processShots(int timeDelta) {
 		mBattleField->delUnit(*unit);
 }
 
-void WorldProcessor::processTowers(int timeDelta) {
-	
-	// проходим по всем башням
-	for (BattleField::UnitsOnLayer::iterator tower_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gTowerLayer)).begin();
-	tower_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gTowerLayer)).end();
-	++tower_iterator) {
-
-		FieldUnit * tower = *tower_iterator;
-		
-		// может попасться слот, пропускаем
-		if (tower->getObjectName().compare("Tower") != 0)
-			continue;
-		
-		// проверяем времени с последнего выстрела больше ли прошло, чем башня позволяет
+void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLayer &enemies, int timeDelta) {
+	// проверяем времени с последнего выстрела больше ли прошло, чем башня позволяет
 		if ((float(mTimeCounter) - tower->getSetting("last_shot").getValue()) < 
 		    ((tower)->getSetting("attack_speed").getValue() * 1000))
 			// стреляли, пропускаем башню
-			continue;
+			return;
 
 		// не стреляли, значит надо найти по кому стрелять, то есть в первого попавшегося (в контейнере)
-		for (BattleField::UnitsOnLayer::iterator unit_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).begin();
-			unit_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).end();
+		for (BattleField::UnitsOnLayer::iterator unit_iterator = enemies.begin();
+			unit_iterator != enemies.end();
 			++unit_iterator) {
 
 				FieldUnit * unit = *unit_iterator;
@@ -317,6 +305,23 @@ void WorldProcessor::processTowers(int timeDelta) {
 					break;
 				}
 		}
+}
+
+void WorldProcessor::processTowers(int timeDelta) {
+	
+	// проходим по всем башням
+	for (BattleField::UnitsOnLayer::iterator tower_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gTowerLayer)).begin();
+	tower_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gTowerLayer)).end();
+	++tower_iterator) {
+
+		FieldUnit * tower = *tower_iterator;
+		
+		// может попасться слот, пропускаем
+		if (tower->getObjectName().compare("Tower") != 0)
+			continue;
+		
+		doTowerShot(tower, mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer), timeDelta);
+		
 	}
 
 }

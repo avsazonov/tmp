@@ -5,8 +5,14 @@
 #include <list>
 
 class WorldCreator;
-class FieldUnit;
-class BattleField;
+
+#include "FieldUnit.h"
+
+namespace tut
+{
+    template<typename T>
+    class test_object;
+}
 
 // Объекты отвечают за генерацию 
 // новых врагов
@@ -26,6 +32,10 @@ public:
 
 // Отвечает за процесс атаки/защиты
 class WorldProcessor {
+
+	template<typename T>
+    friend class tut::test_object;
+
 	BattleField  * mBattleField;
 	WorldCreator * mWorldCreator;
 	float          mTimeCounter;
@@ -59,6 +69,9 @@ protected:
 	virtual void processEnemies(int timeDelta);
 	virtual void processShots(int timeDelta);
 	virtual void processTowers(int timeDelta);
+
+	// рефакторинг, экстрагирование метода processTowers
+	virtual void doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLayer &enemies, int timeDelta);
 
 	// увеличивают статистику на единицу
 	virtual void updateKilled(float type);

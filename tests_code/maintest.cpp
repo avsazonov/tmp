@@ -188,6 +188,40 @@ void worldcreator_test_group_type::object::test<1>() {
 	}
 }
 
+#include "WorldProcessor.h"
+struct worldprocessor_data {
+	WorldCreator world_creator;
+	BattleField  battlefield;
+	WorldProcessor * world_processor;
+	worldprocessor_data() : world_creator(battlefield), world_processor(0) { 
+		world_creator.create(); 
+		FieldUnit * tower;
+		battlefield.addUnit(tower = world_creator.createTower(WorldCreator::TOWERTYPE::TOWER_1));
+		tower->setSetting("x", 17.f);
+		tower->setSetting("y",  2.f);
+		FieldUnit * enemy;
+		battlefield.addUnit(enemy = world_creator.createEnemy(WorldCreator::ENEMYTYPE::ENEMY_1));
+		enemy->setSetting("x", 17.f);
+		enemy->setSetting("y",  3.f);
+		world_processor = new WorldProcessor(world_creator, battlefield);
+	}
+	~worldprocessor_data() {
+		delete world_processor;
+	}
+};
+
+typedef tut::test_group<worldprocessor_data> worldprocessor_test_group_type;
+worldprocessor_test_group_type worldprocessor_test_group("worldprocessor_tests");
+
+template<>
+template<>
+void worldprocessor_test_group_type::object::test<1>() {
+	world_processor->mTimeCounter = 1000;
+	world_processor->processTowers(100);
+	ensure_equals("shot created by processTowers", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size() == 1, true);
+}
+
+
 tut::test_runner_singleton runner;
 
 //#include <s3e.h>
