@@ -8,4 +8,5 @@ gameobject_tests: 1: passed
 gameobject_tests: 2: passed
 worldcreator_tests: 1: passed
 worldprocessor_tests: 1: passed
+worldprocessor_tests: 2: passed
 === Tests finished ===
