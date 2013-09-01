@@ -253,6 +253,19 @@ std::pair<float, float> Enemy::predictNextStep(int timeDelta, bool &updateWaypoi
 	return point;
 }
 
+void Enemy::move(int timeDelta) {
+	bool update_waypoint = false;
+	std::pair<float, float> next_enemy_step = predictNextStep(timeDelta, update_waypoint);
+	setSetting("x", next_enemy_step.first);
+	setSetting("y", next_enemy_step.second);
+
+	// требуется обновить значения - мы прошли некоторую контрольную точку
+	// сам predict не обновляет во-первых потому что он predict, а во-вторых
+	// он используется еще для вычисления цели выстрела
+	if (update_waypoint)
+		setSetting("way_point_number", getSetting("way_point_number").getValue() + 1);
+}
+
 void Enemy::doRender() const {
 
 	// рисуем самого врага
@@ -322,6 +335,14 @@ Shot::Shot() : FieldUnit("Shot") {
 	setSetting("size_x", 0.25f);
 	setSetting("size_y", 0.25f);
 	setSetting("layer", gShotLayer);
+}
+
+void Shot::move(int timeDelta) {
+	float delta_x = (getSetting("target_x").getValue() - getSetting("tower_x").getValue()) / (gShotLife / timeDelta); 
+	float delta_y = (getSetting("target_y").getValue() - getSetting("tower_y").getValue()) / (gShotLife / timeDelta);
+
+	setSetting("x", getSetting("x").getValue() + delta_x);
+	setSetting("y", getSetting("y").getValue() + delta_y);
 }
 
 void Shot::doRender() const {

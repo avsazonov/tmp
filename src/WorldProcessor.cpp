@@ -72,10 +72,6 @@ inline bool checkInBounds(float x1, float y1, float x, float y, float x2, float 
 // TODO: move to utilities.h
 inline float square(float x) { return x*x; }
 
-WorldProcessor::StepPoint WorldProcessor::predictNextEnemyStep(TowerDefense::Enemy * enemy, int timeDelta, bool &updateWaypoint) {
-	return enemy->predictNextStep(timeDelta, updateWaypoint);	
-}
-
 inline bool checkUnitOut(FieldUnit * unit, float cellsX, float cellsY) {
 	// проверка по координатам что объект ушел за пределы поля
 	return (unit->getSetting("x").getValue() <= -unit->getSetting("size_x").getValue()) ||
@@ -85,17 +81,7 @@ inline bool checkUnitOut(FieldUnit * unit, float cellsX, float cellsY) {
 }
 
 void WorldProcessor::moveEnemy(TowerDefense::Enemy * unit, int timeDelta) {
-		// двигаем врага
-		bool update_waypoint = false;
-		StepPoint next_enemy_step = predictNextEnemyStep(unit, timeDelta, update_waypoint);
-		unit->setSetting("x", next_enemy_step.first);
-		unit->setSetting("y", next_enemy_step.second);
-
-		// требуется обновить значения - мы прошли некоторую контрольную точку
-		// сам predict не обновляет во-первых потому что он predict, а во-вторых
-		// он используется еще для вычисления цели выстрела
-		if (update_waypoint)
-			unit->setSetting("way_point_number", unit->getSetting("way_point_number").getValue() + 1);
+	unit->move(timeDelta);
 }
 
 void WorldProcessor::processEnemies(int timeDelta) {
@@ -131,11 +117,7 @@ void WorldProcessor::processEnemies(int timeDelta) {
 }
 
 void WorldProcessor::moveShot(TowerDefense::Shot * shot, int timeDelta) {
-	float delta_x = (shot->getSetting("target_x").getValue() - shot->getSetting("tower_x").getValue()) / (gShotLife / timeDelta); 
-	float delta_y = (shot->getSetting("target_y").getValue() - shot->getSetting("tower_y").getValue()) / (gShotLife / timeDelta);
-
-	shot->setSetting("x", shot->getSetting("x").getValue() + delta_x);
-	shot->setSetting("y", shot->getSetting("y").getValue() + delta_y);
+	shot->move(timeDelta);
 }
 
 bool WorldProcessor::doOneShot(TowerDefense::Shot * shot, int timeDelta) {

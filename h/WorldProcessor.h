@@ -89,8 +89,6 @@ protected:
 
 	typedef std::pair<float, float> StepPoint;
 
-	// вычисление следующей координаты врага
-	virtual StepPoint predictNextEnemyStep(TowerDefense::Enemy * unit, int time_delta, bool &updateWaypoint);
 };
 
 #endif

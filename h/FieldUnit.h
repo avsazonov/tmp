@@ -77,6 +77,7 @@ namespace TowerDefense {
 	public:
 		Enemy(float HP, float speed, int type, const WorldCreator * const);
 		std::pair<float, float> predictNextStep(int timeDelta, bool &do_update);
+		void move(int timeDelta);
 	protected:
 		virtual void doRender() const;
 	};
@@ -109,6 +110,8 @@ namespace TowerDefense {
 		
 		void addLink(Enemy * linkedUnit) { mLinkedUnit = linkedUnit; }
 		Enemy * getLinked() { return mLinkedUnit; }
+
+		void move(int timeDelta);
 
 	protected:
 		virtual void doRender() const;
