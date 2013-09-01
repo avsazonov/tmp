@@ -190,15 +190,18 @@ void worldcreator_test_group_type::object::test<1>() {
 	}
 }
 
+#include "GameMode.h"
 #include "WorldProcessor.h"
-struct worldprocessor_data {
+struct attackingrunmode_data {
 	WorldCreator world_creator;
 	BattleField  battlefield;
 	WorldProcessor * world_processor;
 	TowerDefense::Tower * tower;
 	TowerDefense::Enemy * enemy;
+	TowerDefense::AttackingRunMode * attackingrun_mode;
+	GameControls gamecontrols;
 
-	worldprocessor_data() : world_creator(battlefield), world_processor(0) { 
+	attackingrunmode_data() : world_creator(battlefield), world_processor(0) { 
 		world_creator.create(); 
 		battlefield.addTower(tower = world_creator.createTower(WorldCreator::TOWERTYPE::TOWER_1));
 		tower->setSetting("x", 17.f);
@@ -206,43 +209,43 @@ struct worldprocessor_data {
 		battlefield.addEnemy(enemy = world_creator.createEnemy(WorldCreator::ENEMYTYPE::ENEMY_1));
 		enemy->setSetting("x", 17.f);
 		enemy->setSetting("y",  3.f);
-		world_processor = new WorldProcessor(world_creator, battlefield);
+		attackingrun_mode = new TowerDefense::AttackingRunMode(battlefield, gamecontrols, world_creator);
 	}
-	~worldprocessor_data() {
-		delete world_processor;
+	~attackingrunmode_data() {
+		delete attackingrun_mode;
 	}
 };
 
-typedef tut::test_group<worldprocessor_data> worldprocessor_test_group_type;
-worldprocessor_test_group_type worldprocessor_test_group("worldprocessor_tests");
+typedef tut::test_group<attackingrunmode_data> attackingrunmode_test_group_type;
+attackingrunmode_test_group_type worldprocessor_test_group("attackingrunmode_tests");
 
 template<>
 template<>
-void worldprocessor_test_group_type::object::test<1>() {
-	world_processor->mTimeCounter = 1000;
-	world_processor->processTowers(100);
+void attackingrunmode_test_group_type::object::test<1>() {
+	attackingrun_mode->mTimeCounter = 1000;
+	attackingrun_mode->processTowers(100);
 	ensure_equals("shot created by processTowers", battlefield.getShots().size() == 1, true);
 	enemy->setSetting("current_HP", 1.f);
 	for (int time = 0; time < gShotLife + 100; time+=100) 
-		world_processor->processShots(100);
-	world_processor->processEnemies(100);
+		attackingrun_mode->processShots(100);
+	attackingrun_mode->processEnemies(100);
 	ensure_equals("shot killed the enemy", battlefield.getEnemies().size() == 0, true);
 	ensure_equals("shot destroyed", battlefield.getShots().size() == 0, true);
 }
 
 template<>
 template<>
-void worldprocessor_test_group_type::object::test<2>() {
-	world_processor->initStatistics();
+void attackingrunmode_test_group_type::object::test<2>() {
+	attackingrun_mode->initialize();
 	enemy->setSetting("way_point_number", 3.f);
 	enemy->setSetting("entry_x", 20.f);
 	enemy->setSetting("entry_y",  3.f);
 	float speed = enemy->getSetting("speed").getValue();
 	float type = enemy->getSetting("type").getValue();
 	for (int i = 0; i < int(speed * 18 /* cells */ * 10 /* deltas in second */) ; ++i) 
-		world_processor->processEnemies(100);
+		attackingrun_mode->processEnemies(100);
 	ensure_equals("alive tank destroyed", battlefield.getEnemies().size(), 0);
-	ensure_equals("alive statistics updated", world_processor->mAliveStatistics[type], 1);
+	ensure_equals("alive statistics updated", attackingrun_mode->mAliveStatistics[type], 1);
 }
 
 #include "GameMode.h"
@@ -262,16 +265,14 @@ struct preparingfieldmode_data {
 		tower->setSetting("x", 17.f);
 		tower->setSetting("y",  2.f);
 		battlefield.addTowerSlot(slot = new TowerDefense::TowerSlot(10.f, 2.f));
-		world_processor = new WorldProcessor(world_creator, battlefield);
 
 		DrawHelper::construct(world_creator.getCellsX(), world_creator.getCellsY());
 
-		preparingfield_mode = new TowerDefense::PreparingFieldMode(battlefield, game_controls, world_creator, *world_processor);
+		preparingfield_mode = new TowerDefense::PreparingFieldMode(battlefield, game_controls, world_creator);
 		preparingfield_mode->initialize();
 	}
 
 	~preparingfieldmode_data() {
-		delete world_processor;
 		delete preparingfield_mode;
 
 		DrawHelper::destruct();

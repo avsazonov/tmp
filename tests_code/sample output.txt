@@ -1,4 +1,6 @@
 === Starting tests ===
+attackingrunmode_tests: 1: passed
+attackingrunmode_tests: 2: passed
 battlefield_tests: 1: passed
 battlefield_tests: 2: passed
 gamecontrols_tests: 1: passed
@@ -7,6 +9,4 @@ gameobject_tests: 1: passed
 gameobject_tests: 2: passed
 preparingfield_tests: 1: passed
 worldcreator_tests: 1: passed
-worldprocessor_tests: 1: passed
-worldprocessor_tests: 2: passed
 === Tests finished ===

@@ -16,7 +16,6 @@ protected:
 	BattleField    * mBattleField;
 	GameControls   * mGameControls;	
 	WorldCreator   * mWorldCreator;
-	WorldProcessor * mWorldProcessor;
 
 private:
 	// маркер выхода
@@ -27,12 +26,10 @@ private:
 public:
 	GameMode(BattleField& battleField, 
 		GameControls& gameControls, 
-		WorldCreator& worldCreator,
-		WorldProcessor& worldProcessor) :
+		WorldCreator& worldCreator) :
 		mBattleField(&battleField),
 		mGameControls(&gameControls),
 		mWorldCreator(&worldCreator),
-		mWorldProcessor(&worldProcessor),
 		mDoExit(false), mRepeat(false)
 	{}
 
@@ -54,6 +51,7 @@ public:
 };
 
 #include "FieldUnit.h"
+#include "WorldProcessor.h"
 
 namespace tut
 {
@@ -82,9 +80,8 @@ namespace TowerDefense {
 	public:
 		PreparingFieldMode(BattleField& battleField, 
 			GameControls& gameControls, 
-			WorldCreator& worldCreator,
-			WorldProcessor& worldProcessor) :
-			GameMode(battleField, gameControls, worldCreator, worldProcessor),
+			WorldCreator& worldCreator) :
+			GameMode(battleField, gameControls, worldCreator),
 			mPlayButton(0), mLastClickedTower(0), mLastClickedSlot(0), mTowerChoiceMenu(0) {}
 		
 		// подготовка режима
@@ -106,19 +103,23 @@ namespace TowerDefense {
 
 	// Режим атаки противника
 	class AttackingRunMode : public GameMode {
+		template<typename T>
+		friend class tut::test_object;
+
 		// Та же что и в подготовке кнопка старта/паузы
 		GameControl * mPlayButton;
 		// Элемент управления - вывод статистики убежавших
 		GameControl * mStatisticsBar;
 		// Вывод оставшегося времени
 		GameControl * mTimerBar;
+		float         mTimeCounter;
+		Randomizer	   mRandomizer;
 	public:
 		AttackingRunMode(BattleField& battleField, 
 			GameControls& gameControls, 
-			WorldCreator& worldCreator,
-			WorldProcessor& worldProcessor) :
-			GameMode(battleField, gameControls, worldCreator, worldProcessor), 
-			mPlayButton(0), mStatisticsBar(0), mTimerBar(0) {}
+			WorldCreator& worldCreator) :
+			GameMode(battleField, gameControls, worldCreator), 
+			mPlayButton(0), mStatisticsBar(0), mTimerBar(0), mRandomizer(worldCreator) {}
 
 		// подготовка-инициализация (в основном элементов управления)
 		void initialize();
@@ -128,19 +129,38 @@ namespace TowerDefense {
 
 		// шаг игрового мира
 		GameMode * processStep(int timeDelta); 
+
+		typedef std::map<float, int> StatisticsMap;
+
+	private:
+		StatisticsMap mKilledStatistics, mAliveStatistics;
+		void generateStep(int timeDelta);
+
+		void processEnemies(int timeDelta);
+		void processTowers(int timeDelta);
+		void processShots(int timeDelta);
+
+	public:
+		virtual StatisticsMap& getKilledStatistics() { return mKilledStatistics; }
+		virtual StatisticsMap& getAliveStatistics()  { return mAliveStatistics;  }
+		virtual void updateKilled(float type) { ++mKilledStatistics[type];  }
+		virtual void updateAlive(float type)  { ++mAliveStatistics[type];   }
 	};
 
 	// Вывод финальной статистики
 	class GameStatisticsMode : public GameMode {
 		// элемент управления вывода финальной статистики
 		GameControl * mFinalStatisticsBanner;
+		AttackingRunMode::StatisticsMap mAliveStatistics, mKilledStatistics;
 	public:
+
 		GameStatisticsMode(BattleField& battleField, 
 			GameControls& gameControls, 
 			WorldCreator& worldCreator,
-			WorldProcessor& worldProcessor) :
-			GameMode(battleField, gameControls, worldCreator, worldProcessor), 
-			mFinalStatisticsBanner(0) {}
+			AttackingRunMode::StatisticsMap aliveStatistics,
+			AttackingRunMode::StatisticsMap killedStatistics) :
+			GameMode(battleField, gameControls, worldCreator), 
+			mFinalStatisticsBanner(0), mAliveStatistics(aliveStatistics), mKilledStatistics(killedStatistics) {}
 
 		// подготовка режима
 		void initialize();

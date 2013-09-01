@@ -86,7 +86,7 @@ GameMode * PreparingFieldMode::processUserEvent(float x, float y) {
 				// убираем слоты с карты
 				clearSlots();
 				// переходим в режим атаки
-				return new TowerDefense::AttackingRunMode(*mBattleField, *mGameControls, *mWorldCreator, *mWorldProcessor);
+				return new TowerDefense::AttackingRunMode(*mBattleField, *mGameControls, *mWorldCreator);
 			}
 		}
 
@@ -188,6 +188,13 @@ void AttackingRunMode::initialize() {
 	if (!mTimerBar)
 		mGameControls->addControl(mTimerBar = new TimerBar);
 	mTimerBar->enable();
+
+	for (int i = 1; i < 4; ++i) {
+		mAliveStatistics[float(i)] = 0;
+		mKilledStatistics[float(i)] = 0;
+	}
+
+	mTimeCounter = 0;
 }
 
 GameMode * AttackingRunMode::processUserEvent(float x, float y) {
@@ -205,27 +212,109 @@ GameMode * AttackingRunMode::processStep(int timeDelta) {
 	// если мы не в паузе, то
 	if (!int(mPlayButton->getSetting("pause").getValue())) {
 		// выводим статистику, суммируя по типам всех сбежавших
-		mStatisticsBar->setSetting("alive", float(mWorldProcessor->getAliveStatistics()[1]
-		                                         +mWorldProcessor->getAliveStatistics()[2]
-												 +mWorldProcessor->getAliveStatistics()[3]));
+		mStatisticsBar->setSetting("alive", float(getAliveStatistics()[1]
+		                                         +getAliveStatistics()[2]
+												 +getAliveStatistics()[3]));
 
 		// проверяем конец игры
-		if ((mWorldProcessor->getProcessTime() >= gSecondsToAttack) || (mStatisticsBar->getSetting("alive").getValue() > gMaxRunOut)) {
+		if ((float(mTimeCounter / 1000) >= gSecondsToAttack) || (mStatisticsBar->getSetting("alive").getValue() > gMaxRunOut)) {
 			mTimerBar->disable();
 			mStatisticsBar->disable();
 			// вобщем если конец - меняем режим атаки на режим завершения
-			return new GameStatisticsMode(*mBattleField, *mGameControls, *mWorldCreator, *mWorldProcessor);
+			return new GameStatisticsMode(*mBattleField, *mGameControls, *mWorldCreator, mAliveStatistics, mKilledStatistics);
 		}
 
 		// если не конец игры - то делаем шаг и обновляем таймер
-		mTimerBar->setSetting("minutes", float((gSecondsToAttack - int(mWorldProcessor->getProcessTime())) / 60));
-		mTimerBar->setSetting("seconds", float((gSecondsToAttack - int(mWorldProcessor->getProcessTime())) % 60));
+		mTimerBar->setSetting("minutes", float(int(gSecondsToAttack - mTimeCounter / 1000) / 60));
+		mTimerBar->setSetting("seconds", float(int(gSecondsToAttack - mTimeCounter / 1000) % 60));
 
 		// собственно сам шаг игры
-		mWorldProcessor->generateStep(timeDelta);
+		generateStep(timeDelta);
 	}
 
 	return this;
+}
+
+void AttackingRunMode::generateStep(int timeDelta) {
+	mTimeCounter += float(timeDelta);
+	
+	Randomizer::UnitsList to_add(mRandomizer.createRandomUnits(timeDelta));
+	for (Randomizer::UnitsList::iterator unit_iterator = to_add.begin();
+		unit_iterator != to_add.end();
+		++unit_iterator)
+		mBattleField->addEnemy(*unit_iterator);
+
+	processEnemies(timeDelta);
+	processShots(timeDelta);
+	processTowers(timeDelta);
+}
+
+void AttackingRunMode::processEnemies(int timeDelta) {
+	BattleField::EnemiesSet to_delete;
+
+	// проходим по всем врагам
+	for (BattleField::EnemiesSet::iterator unit_iterator = (mBattleField->getEnemies()).begin(); 
+			unit_iterator != (mBattleField->getEnemies()).end(); 
+			++unit_iterator) {
+		TowerDefense::Enemy * unit = *unit_iterator;
+
+		unit->move(timeDelta);
+
+		// если враг уехал за экран - значит сбежал, 
+		// и мы его помечаем на удаление
+		if (unit->runOut()) { 
+			to_delete.insert(unit);
+			updateAlive(unit->getSetting("type").getValue());
+		} else
+		// если не уехал, но жизни не осталось - значит врага убили, 
+		// и мы его также помечаем на удаление
+		if (unit->isDestroyed()) {
+			to_delete.insert(unit);
+			updateKilled(unit->getSetting("type").getValue());
+		}
+	}
+
+	// удаляем помеченные с поля битвы
+	for (BattleField::EnemiesSet::iterator unit_iterator = to_delete.begin(); 
+		unit_iterator != to_delete.end(); 
+		++unit_iterator)
+		mBattleField->delEnemy(*unit_iterator);
+}
+ 
+void AttackingRunMode::processTowers(int timeDelta) {
+	
+	// проходим по всем башням
+	for (BattleField::TowersSet::iterator tower_iterator = (mBattleField->getTowers()).begin();
+	tower_iterator != (mBattleField->getTowers()).end();
+	++tower_iterator) {
+
+		TowerDefense::Tower * tower = *tower_iterator;
+				
+		TowerDefense::Shot * shot = tower->shootEnemy(mBattleField->getEnemies(), mTimeCounter, timeDelta);
+		if (0 != shot) 
+			mBattleField->addShot(shot);	
+	}
+}
+
+void AttackingRunMode::processShots(int timeDelta) {
+	BattleField::ShotsSet to_delete;
+
+	// проходим по всем выстрелам
+	for (BattleField::ShotsSet::iterator shot_iterator = (mBattleField->getShots()).begin();
+		shot_iterator != (mBattleField->getShots()).end();
+		++shot_iterator) {
+		
+		TowerDefense::Shot * shot = *shot_iterator;
+		shot->move(timeDelta);
+
+		if (shot->reachedTarget()) {
+			shot->damageTarget();
+			to_delete.insert(shot);	
+		} 
+	}
+
+	for (BattleField::ShotsSet::iterator unit_iterator = to_delete.begin(); unit_iterator != to_delete.end(); ++unit_iterator)
+		mBattleField->delShot(*unit_iterator);
 }
 
 void GameStatisticsMode::initialize() {
@@ -246,12 +335,12 @@ void GameStatisticsMode::initialize() {
 
 	// здесь по идее можно сделать цикл по всем типам юнитов-врагов
 	// и передавать его через настройки
-	mFinalStatisticsBanner->setSetting("killed_type_1", float(mWorldProcessor->getKilledStatistics()[1.f]));
-	mFinalStatisticsBanner->setSetting("killed_type_2", float(mWorldProcessor->getKilledStatistics()[2.f]));
-	mFinalStatisticsBanner->setSetting("killed_type_3", float(mWorldProcessor->getKilledStatistics()[3.f]));
-	mFinalStatisticsBanner->setSetting("alive", float(mWorldProcessor->getAliveStatistics()[1.f] + 
-													  mWorldProcessor->getAliveStatistics()[2.f] + 
-													  mWorldProcessor->getAliveStatistics()[3.f]
+	mFinalStatisticsBanner->setSetting("killed_type_1", float(mKilledStatistics[1.f]));
+	mFinalStatisticsBanner->setSetting("killed_type_2", float(mKilledStatistics[2.f]));
+	mFinalStatisticsBanner->setSetting("killed_type_3", float(mKilledStatistics[3.f]));
+	mFinalStatisticsBanner->setSetting("alive", float(mAliveStatistics[1.f] + 
+													  mAliveStatistics[2.f] + 
+													  mAliveStatistics[3.f]
 	));
 
 	// победа, в случае если убежало не более чем положено
