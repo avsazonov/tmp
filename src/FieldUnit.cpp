@@ -298,62 +298,121 @@ FieldUnit * BattleField::getConnectedUnit(FieldUnit * unit) {
 }
 
 void BattleField::addShot(TowerDefense::Shot* shot) {
+	/*
 	if (0 != shot)
 		mShots.insert(shot);
+	*/
+	addUnit(shot);
 }
 
 void BattleField::delShot(TowerDefense::Shot* shot) {
+	/*
 	mShots.erase(shot);
 	delete shot;
+	*/
+	delUnit(shot);
 }
 
 void BattleField::addEnemy(TowerDefense::Enemy* enemy) {
+	/*
 	if (0 != enemy)
 		mEnemies.insert(enemy);
+	*/
+	addUnit(enemy);
 }
 
 void BattleField::delEnemy(TowerDefense::Enemy* enemy) {
+	/*
 	mEnemies.erase(enemy);
 	delete enemy;
+	*/
+	delUnit(enemy);
 }
 
 void BattleField::addTower(TowerDefense::Tower* tower) {
+	/*
 	if (0 != tower)
 		mTowers.insert(tower);
+	*/
+	addUnit(tower);
 }
 
 void BattleField::delTower(TowerDefense::Tower* tower) {
+	/*
 	mTowers.erase(tower);
 	delete tower;
+	*/
+	delUnit(tower);
 }
 
 void BattleField::addTowerSlot(TowerDefense::TowerSlot* towerSlot) {
+	/*
 	if (0 != towerSlot)
 		mTowerSlots.insert(towerSlot);
+	*/
+	addUnit(towerSlot);
 }
 
 void BattleField::delTowerSlot(TowerDefense::TowerSlot* towerSlot) {
+	/*
 	mTowerSlots.erase(towerSlot);
 	delete towerSlot;
+	*/
+	delUnit(towerSlot);
 }
 
 void BattleField::addBackGroundCell(TowerDefense::BackGroundCell* bgCell) {
+	/*
 	if (0 != bgCell)
 		mBackGroundCells.insert(bgCell);
+	*/
+	addUnit(bgCell);
 }
 
 void BattleField::delBackGroundCell(TowerDefense::BackGroundCell* bgCell) {
+	/*
 	mBackGroundCells.erase(bgCell);
 	delete bgCell;
+	*/
+	delUnit(bgCell);
 }
 
 void BattleField::addPathCell(TowerDefense::PathCell* pathCell) {
+	/*
 	if (0 != pathCell)
 		mPathCells.insert(pathCell);
+	*/
+	addUnit(pathCell);
 }
 
 void BattleField::delPathCell(TowerDefense::PathCell* pathCell) {
+	/*
 	mPathCells.erase(pathCell);
 	delete pathCell;
+	*/
+	delUnit(pathCell);
 }
 
+BattleField::ShotsSet& BattleField::getShots() {
+	return mShots;
+}
+
+BattleField::EnemiesSet& BattleField::getEnemies() {
+	return mEnemies;
+}
+
+BattleField::TowersSet& BattleField::getTowers() {
+	return mTowers;
+}
+
+BattleField::TowerSlotsSet& BattleField::getTowerSlots() {
+	return mTowerSlots;
+}
+
+BattleField::BackGroundCellsSet& BattleField::getBackGroundCells() {
+	return mBackGroundCells;
+}
+
+BattleField::PathCellsSet& BattleField::getPathCells() {
+	return mPathCells;
+}

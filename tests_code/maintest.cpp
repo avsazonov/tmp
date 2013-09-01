@@ -57,14 +57,14 @@ template<>
 template<>
 void battlefield_test_group_type::object::test<2>() {
 	
-	battlefield.addUnit(new TowerDefense::Shot);
+	battlefield.addShot(new TowerDefense::Shot);
 	ensure_equals("BattleField after adding one unit has one layer", battlefield.getBattleMap().size(), 1);
 	ensure_equals("BattleField getUnitsOnLayer return one unit", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size(), 1);
 
-	FieldUnit * shot;
-	battlefield.addUnit(shot = new TowerDefense::Shot);
-	battlefield.delUnit(shot);
-	ensure_equals("BattleField delUnit deletes one unit", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size(), 1);
+	TowerDefense::Shot * shot;
+	battlefield.addShot(shot = new TowerDefense::Shot);
+	battlefield.delShot(shot);
+	ensure_equals("BattleField delShot deletes one unit", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size(), 1);
 }
 
 template<>
@@ -193,14 +193,15 @@ struct worldprocessor_data {
 	WorldCreator world_creator;
 	BattleField  battlefield;
 	WorldProcessor * world_processor;
-	FieldUnit * tower, * enemy;
+	TowerDefense::Tower * tower;
+	TowerDefense::Enemy * enemy;
 
 	worldprocessor_data() : world_creator(battlefield), world_processor(0) { 
 		world_creator.create(); 
-		battlefield.addUnit(tower = world_creator.createTower(WorldCreator::TOWERTYPE::TOWER_1));
+		battlefield.addTower(tower = world_creator.createTower(WorldCreator::TOWERTYPE::TOWER_1));
 		tower->setSetting("x", 17.f);
 		tower->setSetting("y",  2.f);
-		battlefield.addUnit(enemy = world_creator.createEnemy(WorldCreator::ENEMYTYPE::ENEMY_1));
+		battlefield.addEnemy(enemy = world_creator.createEnemy(WorldCreator::ENEMYTYPE::ENEMY_1));
 		enemy->setSetting("x", 17.f);
 		enemy->setSetting("y",  3.f);
 		world_processor = new WorldProcessor(world_creator, battlefield);

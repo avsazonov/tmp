@@ -22,7 +22,7 @@ const WorldCreator::PointsList& WorldCreator::getMapEntries() const {
 void WorldCreator::create() {
 	// создание первоначальных объектов
 
-	mBattleField->addUnit(new BackGroundCell(0.f, 0.f, getCellsX(), getCellsY()));
+	mBattleField->addBackGroundCell(new BackGroundCell(0.f, 0.f, getCellsX(), getCellsY()));
 
 	// Входы врагов на карту
 	mMapEntries.push_back(WayPoint(getCellsX(), 3.f));
@@ -32,17 +32,17 @@ void WorldCreator::create() {
 
 	for (int x = 0; x < 20; ++x) {
 		// добавляем дорожки. их можно сделать кривыми, это будет работать
-		mBattleField->addUnit(new PathCell(float(x), 3.f));
+		mBattleField->addPathCell(new PathCell(float(x), 3.f));
 		first_way.push_back(WayPoint(getCellsX() - float(x), 3.f));
-		mBattleField->addUnit(new PathCell(float(x), 7.f));
+		mBattleField->addPathCell(new PathCell(float(x), 7.f));
 		second_way.push_back(WayPoint(getCellsX() - float(x), 7.f));
 
 		// каждая пятая клетка начиная с третьей - слот для башни
 		if (0 == (x + 3) % 5) {
-			mBattleField->addUnit(new TowerSlot(float(x), 2.f));
-			mBattleField->addUnit(new TowerSlot(float(x), 4.f));
-			mBattleField->addUnit(new TowerSlot(float(x), 6.f));
-			mBattleField->addUnit(new TowerSlot(float(x), 8.f));
+			mBattleField->addTowerSlot(new TowerSlot(float(x), 2.f));
+			mBattleField->addTowerSlot(new TowerSlot(float(x), 4.f));
+			mBattleField->addTowerSlot(new TowerSlot(float(x), 6.f));
+			mBattleField->addTowerSlot(new TowerSlot(float(x), 8.f));
 		} 
 	}
 

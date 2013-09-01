@@ -24,7 +24,7 @@ public:
 	  mWorldCreator(&worldCreator), 
 		  mLastCreation(0), mTimeCounter(0), mRandomTime(0) {}
 
-	typedef std::list<FieldUnit*> UnitsList;
+	typedef std::list<TowerDefense::Enemy*> UnitsList;
 
 	// возвращает список врагов для добавления на карту
 	UnitsList createRandomUnits(int timeDelta);

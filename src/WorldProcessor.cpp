@@ -23,7 +23,7 @@ Randomizer::UnitsList Randomizer::createRandomUnits(int timeDelta) {
 			int enemy_type = rand() % 3;
 
 			// Создаем врага
-			FieldUnit * enemy = mWorldCreator->createEnemy(WorldCreator::ENEMYTYPE(enemy_type));
+			TowerDefense::Enemy * enemy = mWorldCreator->createEnemy(WorldCreator::ENEMYTYPE(enemy_type));
 			if (enemy) {
 				enemy->setSetting("x", entry_iterator->first);
 				enemy->setSetting("y", entry_iterator->second);
@@ -266,7 +266,7 @@ void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLa
 				// проверяем расстояние до юнита
 				if ((square(tower_x - unit_x) + square(unit_y - tower_y)) < square(tower->getSetting("radius").getValue())) {
 					// если меньше дистанции для башни - то создаем выстрел
-					FieldUnit * shot = mWorldCreator->createShot();
+					TowerDefense::Shot * shot = mWorldCreator->createShot();
 					if (!shot)
 						continue;
 					
@@ -308,7 +308,7 @@ void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLa
 					shot->setSetting("target_x", target.first + unit->getSetting("size_x").getValue()/2);
 					shot->setSetting("target_y", target.second + unit->getSetting("size_y").getValue()/2);
 
-					mBattleField->addUnit(shot);
+					mBattleField->addShot(shot);
 					mBattleField->addConnection(shot, unit);
 					tower->setSetting("last_shot", float(mTimeCounter));
 
@@ -362,7 +362,7 @@ void WorldProcessor::generateStep(int timeDelta) {
 	for (Randomizer::UnitsList::iterator unit_iterator = to_add.begin();
 		unit_iterator != to_add.end();
 		++unit_iterator)
-		mBattleField->addUnit(*unit_iterator);
+		mBattleField->addEnemy(*unit_iterator);
 
 	// обрабатываем передвижение и жизнь врагов
 	processEnemies(timeDelta);

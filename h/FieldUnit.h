@@ -132,29 +132,35 @@ private:
 	BackGroundCellsSet	mBackGroundCells;
 	PathCellsSet		mPathCells;
 
-public:
-
 	// добавление объекта на карту
 	void addUnit(FieldUnit * unit);
 
-	// refactoring: methods definition
-	// del methods deletes from memory
-	void addShot(TowerDefense::Shot*);
-	void delShot(TowerDefense::Shot*);
-	void addEnemy(TowerDefense::Enemy*);
-	void delEnemy(TowerDefense::Enemy*);
-	void addTower(TowerDefense::Tower*);
-	void delTower(TowerDefense::Tower*);
-	void addTowerSlot(TowerDefense::TowerSlot*);
-	void delTowerSlot(TowerDefense::TowerSlot*);
-	void addBackGroundCell(TowerDefense::BackGroundCell*);
-	void delBackGroundCell(TowerDefense::BackGroundCell*);
-	void addPathCell(TowerDefense::PathCell*);
-	void delPathCell(TowerDefense::PathCell*);
+public:
 
 	// соответственно удаление
 	// в том числе и из памяти
 	void delUnit(FieldUnit * unit);
+
+	// refactoring: methods definition
+	// del methods deletes from memory
+	void addShot(TowerDefense::Shot*);
+	ShotsSet& getShots();
+	void delShot(TowerDefense::Shot*);
+	void addEnemy(TowerDefense::Enemy*);
+	EnemiesSet& getEnemies();
+	void delEnemy(TowerDefense::Enemy*);
+	void addTower(TowerDefense::Tower*);
+	TowersSet& getTowers();
+	void delTower(TowerDefense::Tower*);
+	void addTowerSlot(TowerDefense::TowerSlot*);
+	TowerSlotsSet& getTowerSlots();
+	void delTowerSlot(TowerDefense::TowerSlot*);
+	void addBackGroundCell(TowerDefense::BackGroundCell*);
+	BackGroundCellsSet& getBackGroundCells();
+	void delBackGroundCell(TowerDefense::BackGroundCell*);
+	void addPathCell(TowerDefense::PathCell*);
+	PathCellsSet& getPathCells();
+	void delPathCell(TowerDefense::PathCell*);
 
 	// добавление связи между двумя объектами
 	void addConnection(FieldUnit * firstUnit, FieldUnit * secondUnit);

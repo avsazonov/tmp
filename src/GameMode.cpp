@@ -147,10 +147,10 @@ GameMode * PreparingFieldMode::processUserEvent(float x, float y) {
 				mBattleField->delUnit(mLastClickedUnit);
 				
 				mLastClickedUnit = 0;
-				FieldUnit *tower = 0;
+				TowerDefense::Tower *tower = 0;
 
 				// добавляем башню на поле
-				mBattleField->addUnit(tower = mWorldCreator->createTower(WorldCreator::TOWERTYPE(tower_type)));
+				mBattleField->addTower(tower = mWorldCreator->createTower(WorldCreator::TOWERTYPE(tower_type)));
 				if (tower) {
 					tower->setSetting("x", new_unit_x);
 					tower->setSetting("y", new_unit_y);
