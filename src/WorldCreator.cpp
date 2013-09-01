@@ -58,7 +58,7 @@ void WorldCreator::create() {
 	mMapPaths.push_back(second_way);
 }
 
-FieldUnit * WorldCreator::createTower(WorldCreator::TOWERTYPE towerType) const {
+TowerDefense::Tower * WorldCreator::createTower(WorldCreator::TOWERTYPE towerType) const {
 	// создание башни в зависимости от запрошенного типа
 	Tower * tower = 0;
 	if (TOWER_1 == towerType) 
@@ -70,7 +70,7 @@ FieldUnit * WorldCreator::createTower(WorldCreator::TOWERTYPE towerType) const {
 	return tower;
 };
 
-FieldUnit * WorldCreator::createEnemy(WorldCreator::ENEMYTYPE enemyType) const {
+TowerDefense::Enemy * WorldCreator::createEnemy(WorldCreator::ENEMYTYPE enemyType) const {
 	// создание врага в зависимости от запрошенного типа
 	Enemy * enemy = 0;
 	if (ENEMY_1 == enemyType) 
@@ -82,7 +82,7 @@ FieldUnit * WorldCreator::createEnemy(WorldCreator::ENEMYTYPE enemyType) const {
 	return enemy;
 };
 
-FieldUnit * WorldCreator::createShot() const {
+TowerDefense::Shot * WorldCreator::createShot() const {
 	// создание выстрела
 	return new Shot;
 }

@@ -296,3 +296,64 @@ FieldUnit * BattleField::getConnectedUnit(FieldUnit * unit) {
 			return entry->second;
 	return 0;
 }
+
+void BattleField::addShot(TowerDefense::Shot* shot) {
+	if (0 != shot)
+		mShots.insert(shot);
+}
+
+void BattleField::delShot(TowerDefense::Shot* shot) {
+	mShots.erase(shot);
+	delete shot;
+}
+
+void BattleField::addEnemy(TowerDefense::Enemy* enemy) {
+	if (0 != enemy)
+		mEnemies.insert(enemy);
+}
+
+void BattleField::delEnemy(TowerDefense::Enemy* enemy) {
+	mEnemies.erase(enemy);
+	delete enemy;
+}
+
+void BattleField::addTower(TowerDefense::Tower* tower) {
+	if (0 != tower)
+		mTowers.insert(tower);
+}
+
+void BattleField::delTower(TowerDefense::Tower* tower) {
+	mTowers.erase(tower);
+	delete tower;
+}
+
+void BattleField::addTowerSlot(TowerDefense::TowerSlot* towerSlot) {
+	if (0 != towerSlot)
+		mTowerSlots.insert(towerSlot);
+}
+
+void BattleField::delTowerSlot(TowerDefense::TowerSlot* towerSlot) {
+	mTowerSlots.erase(towerSlot);
+	delete towerSlot;
+}
+
+void BattleField::addBackGroundCell(TowerDefense::BackGroundCell* bgCell) {
+	if (0 != bgCell)
+		mBackGroundCells.insert(bgCell);
+}
+
+void BattleField::delBackGroundCell(TowerDefense::BackGroundCell* bgCell) {
+	mBackGroundCells.erase(bgCell);
+	delete bgCell;
+}
+
+void BattleField::addPathCell(TowerDefense::PathCell* pathCell) {
+	if (0 != pathCell)
+		mPathCells.insert(pathCell);
+}
+
+void BattleField::delPathCell(TowerDefense::PathCell* pathCell) {
+	mPathCells.erase(pathCell);
+	delete pathCell;
+}
+

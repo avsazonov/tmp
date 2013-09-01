@@ -110,16 +110,47 @@ namespace TowerDefense {
 // То есть если явно вызван DelUnit, или ~BattleField - для всех
 // объектов вызывается delete. Таким образом, нельзя создавать 
 // объекты на стеке, если их необходимо добавлять на игровое поле.
-class BattleField : public GameObject {
+class BattleField {
 
 public:
 	typedef std::set<FieldUnit*>		   UnitsOnLayer;
 	typedef std::map<float, UnitsOnLayer>  BattleMap;
 
-	std::string getObjectName() const { return "BattleField"; }
+	typedef std::set<TowerDefense::Shot*>			   ShotsSet;
+	typedef std::set<TowerDefense::Enemy*>			   EnemiesSet;
+	typedef std::set<TowerDefense::Tower*>			   TowersSet;
+	typedef std::set<TowerDefense::TowerSlot*>		   TowerSlotsSet;
+	typedef std::set<TowerDefense::BackGroundCell*>	   BackGroundCellsSet;
+	typedef std::set<TowerDefense::PathCell*>		   PathCellsSet;
+
+private:
+
+	ShotsSet			mShots;
+	EnemiesSet			mEnemies;
+	TowersSet			mTowers;
+	TowerSlotsSet		mTowerSlots;
+	BackGroundCellsSet	mBackGroundCells;
+	PathCellsSet		mPathCells;
+
+public:
 
 	// добавление объекта на карту
 	void addUnit(FieldUnit * unit);
+
+	// refactoring: methods definition
+	// del methods deletes from memory
+	void addShot(TowerDefense::Shot*);
+	void delShot(TowerDefense::Shot*);
+	void addEnemy(TowerDefense::Enemy*);
+	void delEnemy(TowerDefense::Enemy*);
+	void addTower(TowerDefense::Tower*);
+	void delTower(TowerDefense::Tower*);
+	void addTowerSlot(TowerDefense::TowerSlot*);
+	void delTowerSlot(TowerDefense::TowerSlot*);
+	void addBackGroundCell(TowerDefense::BackGroundCell*);
+	void delBackGroundCell(TowerDefense::BackGroundCell*);
+	void addPathCell(TowerDefense::PathCell*);
+	void delPathCell(TowerDefense::PathCell*);
 
 	// соответственно удаление
 	// в том числе и из памяти

@@ -5,7 +5,7 @@
 #include <vector>
 
 class BattleField;
-class FieldUnit;
+#include "FieldUnit.h"
 
 // Класс, объекты которого отвечают за создание
 // объектов игрового мира (в совокупности)
@@ -31,9 +31,9 @@ public:
 	} ENEMYTYPE;
 
 	// создают указанные объекты
-	virtual FieldUnit * createTower(TOWERTYPE towerType) const;
-	virtual FieldUnit * createEnemy(ENEMYTYPE enemyType) const;
-	virtual FieldUnit * createShot() const;
+	virtual TowerDefense::Tower * createTower(TOWERTYPE towerType) const;
+	virtual TowerDefense::Enemy * createEnemy(ENEMYTYPE enemyType) const;
+	virtual TowerDefense::Shot * createShot() const;
 
 	// first - x, second - y
 	typedef std::pair<float, float> WayPoint;
