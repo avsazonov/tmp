@@ -156,8 +156,8 @@ void WorldProcessor::processEnemies(int timeDelta) {
 	BattleField::UnitsOnLayer to_delete;
 
 	// проходим по всем врагам
-	for (BattleField::UnitsOnLayer::iterator unit_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).begin(); 
-			unit_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).end(); 
+	for (BattleField::UnitsOnLayer::iterator unit_iterator = (mBattleField->getEnemies()).begin(); 
+			unit_iterator != (mBattleField->getEnemies()).end(); 
 			++unit_iterator) {
 		FieldUnit * unit = *unit_iterator;
 
@@ -226,8 +226,8 @@ void WorldProcessor::processShots(int timeDelta) {
 	BattleField::UnitsOnLayer to_delete;
 
 	// проходим по всем выстрелам
-	for (BattleField::UnitsOnLayer::iterator shot_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gShotLayer)).begin();
-		shot_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gShotLayer)).end();
+	for (BattleField::UnitsOnLayer::iterator shot_iterator = (mBattleField->getShots()).begin();
+		shot_iterator != (mBattleField->getShots()).end();
 		++shot_iterator) {
 			FieldUnit * shot = *shot_iterator;
 		if (doOneShot(shot, timeDelta))
@@ -321,8 +321,8 @@ void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLa
 void WorldProcessor::processTowers(int timeDelta) {
 	
 	// проходим по всем башням
-	for (BattleField::UnitsOnLayer::iterator tower_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gTowerLayer)).begin();
-	tower_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gTowerLayer)).end();
+	for (BattleField::UnitsOnLayer::iterator tower_iterator = (mBattleField->getTowers()).begin();
+	tower_iterator != (mBattleField->getTowers()).end();
 	++tower_iterator) {
 
 		FieldUnit * tower = *tower_iterator;
@@ -331,7 +331,7 @@ void WorldProcessor::processTowers(int timeDelta) {
 		if (tower->getObjectName().compare("Tower") != 0)
 			continue;
 		
-		doTowerShot(tower, mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer), timeDelta);
+		doTowerShot(tower, mBattleField->getEnemies(), timeDelta);
 		
 	}
 

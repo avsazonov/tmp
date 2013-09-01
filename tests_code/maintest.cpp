@@ -59,12 +59,12 @@ void battlefield_test_group_type::object::test<2>() {
 	
 	battlefield.addShot(new TowerDefense::Shot);
 	ensure_equals("BattleField after adding one unit has one layer", battlefield.getBattleMap().size(), 1);
-	ensure_equals("BattleField getUnitsOnLayer return one unit", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size(), 1);
+	ensure_equals("BattleField getUnitsOnLayer return one unit", battlefield.getShots().size(), 1);
 
 	TowerDefense::Shot * shot;
 	battlefield.addShot(shot = new TowerDefense::Shot);
 	battlefield.delShot(shot);
-	ensure_equals("BattleField delShot deletes one unit", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size(), 1);
+	ensure_equals("BattleField delShot deletes one unit", battlefield.getShots().size(), 1);
 }
 
 template<>
@@ -219,12 +219,12 @@ template<>
 void worldprocessor_test_group_type::object::test<1>() {
 	world_processor->mTimeCounter = 1000;
 	world_processor->processTowers(100);
-	ensure_equals("shot created by processTowers", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size() == 1, true);
+	ensure_equals("shot created by processTowers", battlefield.getShots().size() == 1, true);
 	enemy->setSetting("current_HP", 1.f);
 	for (int time = 0; time < gShotLife + 100; time+=100) 
 		world_processor->processShots(100);
-	ensure_equals("shot killed the enemy", battlefield.getUnitsOnLayer(TowerDefense::gEnemyLayer).size() == 0, true);
-	ensure_equals("shot destroyed", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size() == 0, true);
+	ensure_equals("shot killed the enemy", battlefield.getEnemies().size() == 0, true);
+	ensure_equals("shot destroyed", battlefield.getShots().size() == 0, true);
 }
 
 template<>
@@ -238,7 +238,7 @@ void worldprocessor_test_group_type::object::test<2>() {
 	float type = enemy->getSetting("type").getValue();
 	for (int i = 0; i < int(speed * 18 /* cells */ * 10 /* deltas in second */) ; ++i) 
 		world_processor->processEnemies(100);
-	ensure_equals("alive tank destroyed", battlefield.getUnitsOnLayer(TowerDefense::gEnemyLayer).size(), 0);
+	ensure_equals("alive tank destroyed", battlefield.getEnemies().size(), 0);
 	ensure_equals("alive statistics updated", world_processor->mAliveStatistics[type], 1);
 }
 

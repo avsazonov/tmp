@@ -115,13 +115,20 @@ class BattleField {
 public:
 	typedef std::set<FieldUnit*>		   UnitsOnLayer;
 	typedef std::map<float, UnitsOnLayer>  BattleMap;
-
+	/*
 	typedef std::set<TowerDefense::Shot*>			   ShotsSet;
 	typedef std::set<TowerDefense::Enemy*>			   EnemiesSet;
 	typedef std::set<TowerDefense::Tower*>			   TowersSet;
 	typedef std::set<TowerDefense::TowerSlot*>		   TowerSlotsSet;
 	typedef std::set<TowerDefense::BackGroundCell*>	   BackGroundCellsSet;
 	typedef std::set<TowerDefense::PathCell*>		   PathCellsSet;
+	*/
+	typedef UnitsOnLayer ShotsSet;
+	typedef UnitsOnLayer EnemiesSet;
+	typedef UnitsOnLayer TowersSet;
+	typedef UnitsOnLayer TowerSlotsSet;
+	typedef UnitsOnLayer BackGroundCellsSet;
+	typedef UnitsOnLayer PathCellsSet;
 
 private:
 
@@ -144,22 +151,22 @@ public:
 	// refactoring: methods definition
 	// del methods deletes from memory
 	void addShot(TowerDefense::Shot*);
-	ShotsSet& getShots();
+	const ShotsSet& getShots();
 	void delShot(TowerDefense::Shot*);
 	void addEnemy(TowerDefense::Enemy*);
-	EnemiesSet& getEnemies();
+	const EnemiesSet& getEnemies();
 	void delEnemy(TowerDefense::Enemy*);
 	void addTower(TowerDefense::Tower*);
-	TowersSet& getTowers();
+	const TowersSet& getTowers();
 	void delTower(TowerDefense::Tower*);
 	void addTowerSlot(TowerDefense::TowerSlot*);
-	TowerSlotsSet& getTowerSlots();
+	const TowerSlotsSet& getTowerSlots();
 	void delTowerSlot(TowerDefense::TowerSlot*);
 	void addBackGroundCell(TowerDefense::BackGroundCell*);
-	BackGroundCellsSet& getBackGroundCells();
+	const BackGroundCellsSet& getBackGroundCells();
 	void delBackGroundCell(TowerDefense::BackGroundCell*);
 	void addPathCell(TowerDefense::PathCell*);
-	PathCellsSet& getPathCells();
+	const PathCellsSet& getPathCells();
 	void delPathCell(TowerDefense::PathCell*);
 
 	// добавление связи между двумя объектами
@@ -179,13 +186,14 @@ public:
 	// ссылки на карты
 	const BattleMap& getClickableUnits();
 	const BattleMap& getBattleMap();
-	const UnitsOnLayer& getUnitsOnLayer(float layer) {
-		return mBattleField[layer];
-	}
 
 	virtual ~BattleField();
 
 private:
+	const UnitsOnLayer& getUnitsOnLayer(float layer) {
+		return mBattleField[layer];
+	}
+
 	typedef std::pair<FieldUnit*, FieldUnit*> ConnectedPair;
 	typedef std::list<ConnectedPair>          ConnectionsList;
 

@@ -393,26 +393,32 @@ void BattleField::delPathCell(TowerDefense::PathCell* pathCell) {
 	delUnit(pathCell);
 }
 
-BattleField::ShotsSet& BattleField::getShots() {
-	return mShots;
+const BattleField::ShotsSet& BattleField::getShots() {
+	//return mShots;
+	return getUnitsOnLayer(TowerDefense::gShotLayer);
 }
 
-BattleField::EnemiesSet& BattleField::getEnemies() {
-	return mEnemies;
+const BattleField::EnemiesSet& BattleField::getEnemies() {
+	//return mEnemies;
+	return getUnitsOnLayer(TowerDefense::gEnemyLayer);
 }
 
-BattleField::TowersSet& BattleField::getTowers() {
-	return mTowers;
+const BattleField::TowersSet& BattleField::getTowers() {
+	//return mTowers;
+	return getUnitsOnLayer(TowerDefense::gTowerLayer);
 }
 
-BattleField::TowerSlotsSet& BattleField::getTowerSlots() {
-	return mTowerSlots;
+const BattleField::TowerSlotsSet& BattleField::getTowerSlots() {
+	//return mTowerSlots;
+	return getUnitsOnLayer(TowerDefense::gTowerLayer);
 }
 
-BattleField::BackGroundCellsSet& BattleField::getBackGroundCells() {
-	return mBackGroundCells;
+const BattleField::BackGroundCellsSet& BattleField::getBackGroundCells() {
+	//return mBackGroundCells;
+	return getUnitsOnLayer(TowerDefense::gBackGroundLayer);
 }
 
-BattleField::PathCellsSet& BattleField::getPathCells() {
-	return mPathCells;
+const BattleField::PathCellsSet& BattleField::getPathCells() {
+	//return mPathCells;
+	return getUnitsOnLayer(TowerDefense::gPathCellLayer);
 }
