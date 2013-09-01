@@ -225,6 +225,7 @@ void worldprocessor_test_group_type::object::test<1>() {
 	enemy->setSetting("current_HP", 1.f);
 	for (int time = 0; time < gShotLife + 100; time+=100) 
 		world_processor->processShots(100);
+	world_processor->processEnemies(100);
 	ensure_equals("shot killed the enemy", battlefield.getEnemies().size() == 0, true);
 	ensure_equals("shot destroyed", battlefield.getShots().size() == 0, true);
 }

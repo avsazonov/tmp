@@ -266,6 +266,17 @@ void Enemy::move(int timeDelta) {
 		setSetting("way_point_number", getSetting("way_point_number").getValue() + 1);
 }
 
+bool Enemy::runOut() {
+	return (getSetting("x").getValue() <= -getSetting("size_x").getValue()) ||
+		   (getSetting("y").getValue() <= -getSetting("size_y").getValue()) ||
+		   (getSetting("x").getValue() >= mWorldCreator->getCellsX() + getSetting("size_x").getValue()) ||
+		   (getSetting("y").getValue() >= mWorldCreator->getCellsY() + getSetting("size_y").getValue()); 
+}
+
+bool Enemy::isDestroyed() {
+	return getSetting("current_HP").getValue() <= 0;
+}
+
 void Enemy::doRender() const {
 
 	// рисуем самого врага
@@ -331,18 +342,34 @@ void BackGroundCell::doRender() const {
 	);
 }
 
-Shot::Shot() : FieldUnit("Shot") {
+Shot::Shot() : FieldUnit("Shot"), mLinkedUnit(0) {
 	setSetting("size_x", 0.25f);
 	setSetting("size_y", 0.25f);
 	setSetting("layer", gShotLayer);
 }
 
 void Shot::move(int timeDelta) {
+
+	if (reachedTarget())
+		return;
+
 	float delta_x = (getSetting("target_x").getValue() - getSetting("tower_x").getValue()) / (gShotLife / timeDelta); 
 	float delta_y = (getSetting("target_y").getValue() - getSetting("tower_y").getValue()) / (gShotLife / timeDelta);
 
 	setSetting("x", getSetting("x").getValue() + delta_x);
 	setSetting("y", getSetting("y").getValue() + delta_y);
+}
+
+void Shot::damageTarget() {
+	if (getLinked()) 
+		getLinked()->setSetting("current_HP", getLinked()->getSetting("current_HP").getValue() - getSetting("damage").getValue());
+}
+
+bool Shot::reachedTarget() {
+
+	return !checkInBounds(getSetting("target_x").getValue(), getSetting("target_y").getValue(),
+						  getSetting("x").getValue(), getSetting("y").getValue(),
+						  getSetting("tower_x").getValue(), getSetting("tower_y").getValue());
 }
 
 void Shot::doRender() const {

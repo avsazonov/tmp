@@ -70,16 +70,6 @@ protected:
 	virtual void processShots(int timeDelta);
 	virtual void processTowers(int timeDelta);
 
-	// refactoring, extracting processTowers
-	virtual void doTowerShot(TowerDefense::Tower * tower, const BattleField::EnemiesSet &enemies, int timeDelta);
-	
-	// refactoring, extracting processShots. 
-	virtual bool doOneShot(TowerDefense::Shot * shot, int timeDelta); // returns true if needed to delete shot
-	virtual void moveShot(TowerDefense::Shot * shot, int timeDelta);
-
-	// refactoring, moving enemies
-	virtual void moveEnemy(TowerDefense::Enemy * enemy, int timeDelta);
-
 	// увеличивают статистику на единицу
 	virtual void updateKilled(float type);
 	virtual void updateAlive(float type);
