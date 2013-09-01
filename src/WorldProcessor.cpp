@@ -6,8 +6,6 @@
 #include <cmath>
 #include <cstdlib>
 
-const int gShotLife = 1000; // ms
-
 Randomizer::UnitsList Randomizer::createRandomUnits(int timeDelta) {
 
 	mTimeCounter += float(timeDelta);
@@ -182,16 +180,16 @@ void WorldProcessor::processEnemies(int timeDelta) {
 		mBattleField->delUnit(*unit_iterator);
 }
 
-void WorldProcessor::processShots(int timeDelta) {
-	// контейнер для помеченных на удаление
-	BattleField::UnitsOnLayer to_delete;
+void WorldProcessor::moveShot(FieldUnit * shot, int timeDelta) {
+	float delta_x = (shot->getSetting("target_x").getValue() - shot->getSetting("tower_x").getValue()) / (gShotLife / timeDelta); 
+	float delta_y = (shot->getSetting("target_y").getValue() - shot->getSetting("tower_y").getValue()) / (gShotLife / timeDelta);
 
-	// проходим по всем выстрелам
-	for (BattleField::UnitsOnLayer::iterator shot_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gShotLayer)).begin();
-		shot_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gShotLayer)).end();
-		++shot_iterator) {
-			FieldUnit * shot = *shot_iterator;
-			// если "попали", в данном случае вылетели за пределы прямоугольника "координаты цели-башня"
+	shot->setSetting("x", shot->getSetting("x").getValue() + delta_x);
+	shot->setSetting("y", shot->getSetting("y").getValue() + delta_y);
+}
+
+bool WorldProcessor::doOneShot(FieldUnit * shot, int timeDelta) {
+	// если "попали", в данном случае вылетели за пределы прямоугольника "координаты цели-башня"
 			if (!checkInBounds(shot->getSetting("target_x").getValue(), shot->getSetting("target_y").getValue(),
 							   shot->getSetting("x").getValue(), shot->getSetting("y").getValue(),
 							   shot->getSetting("tower_x").getValue(), shot->getSetting("tower_y").getValue())) {
@@ -207,24 +205,33 @@ void WorldProcessor::processShots(int timeDelta) {
 						mBattleField->delUnit(unit);
 					}
 				}
-				// помечаем на удаление выстрел
-				to_delete.insert(shot);
+				
+				return true;
 			}
 			// иначе еще не долетели
 			else {
 				// перемещаем выстрел
-
-				float delta_x = (shot->getSetting("target_x").getValue() - shot->getSetting("tower_x").getValue()) / (gShotLife / timeDelta); 
-				float delta_y = (shot->getSetting("target_y").getValue() - shot->getSetting("tower_y").getValue()) / (gShotLife / timeDelta);
-
-				shot->setSetting("x", shot->getSetting("x").getValue() + delta_x);
-				shot->setSetting("y", shot->getSetting("y").getValue() + delta_y);
+				moveShot(shot, timeDelta);
 			}
+
+			return false;
+}
+
+void WorldProcessor::processShots(int timeDelta) {
+
+	BattleField::UnitsOnLayer to_delete;
+
+	// проходим по всем выстрелам
+	for (BattleField::UnitsOnLayer::iterator shot_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gShotLayer)).begin();
+		shot_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gShotLayer)).end();
+		++shot_iterator) {
+			FieldUnit * shot = *shot_iterator;
+		if (doOneShot(shot, timeDelta))
+			to_delete.insert(shot);
 	}
 
-	// удаляем помеченные с поля
-	for (BattleField::UnitsOnLayer::iterator unit = to_delete.begin(); unit != to_delete.end(); ++unit)
-		mBattleField->delUnit(*unit);
+	for (BattleField::UnitsOnLayer::iterator unit_iterator = to_delete.begin(); unit_iterator != to_delete.end(); ++unit_iterator)
+		mBattleField->delUnit(*unit_iterator);
 }
 
 void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLayer &enemies, int timeDelta) {

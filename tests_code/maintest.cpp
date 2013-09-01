@@ -193,13 +193,13 @@ struct worldprocessor_data {
 	WorldCreator world_creator;
 	BattleField  battlefield;
 	WorldProcessor * world_processor;
+	FieldUnit * tower, * enemy;
+
 	worldprocessor_data() : world_creator(battlefield), world_processor(0) { 
 		world_creator.create(); 
-		FieldUnit * tower;
 		battlefield.addUnit(tower = world_creator.createTower(WorldCreator::TOWERTYPE::TOWER_1));
 		tower->setSetting("x", 17.f);
 		tower->setSetting("y",  2.f);
-		FieldUnit * enemy;
 		battlefield.addUnit(enemy = world_creator.createEnemy(WorldCreator::ENEMYTYPE::ENEMY_1));
 		enemy->setSetting("x", 17.f);
 		enemy->setSetting("y",  3.f);
@@ -219,6 +219,11 @@ void worldprocessor_test_group_type::object::test<1>() {
 	world_processor->mTimeCounter = 1000;
 	world_processor->processTowers(100);
 	ensure_equals("shot created by processTowers", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size() == 1, true);
+	enemy->setSetting("current_HP", 1.f);
+	for (int time = 0; time < gShotLife + 100; time+=100) 
+		world_processor->processShots(100);
+	ensure_equals("shot killed the enemy", battlefield.getUnitsOnLayer(TowerDefense::gEnemyLayer).size() == 0, true);
+	ensure_equals("shot destroyed", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size() == 0, true);
 }
 
 

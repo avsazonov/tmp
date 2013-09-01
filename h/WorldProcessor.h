@@ -70,8 +70,12 @@ protected:
 	virtual void processShots(int timeDelta);
 	virtual void processTowers(int timeDelta);
 
-	// рефакторинг, экстрагирование метода processTowers
+	// refactoring, extracting processTowers
 	virtual void doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLayer &enemies, int timeDelta);
+	
+	// refactoring, extracting processShots. 
+	virtual bool doOneShot(FieldUnit * shot, int timeDelta); // returns true if needed to delete shot
+	virtual void moveShot(FieldUnit * shot, int timeDelta);
 
 	// увеличивают статистику на единицу
 	virtual void updateKilled(float type);

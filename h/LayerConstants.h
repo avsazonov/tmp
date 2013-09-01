@@ -11,4 +11,6 @@ namespace TowerDefense {
 
 }
 
+const int gShotLife = 1000; // ms
+
 #endif
