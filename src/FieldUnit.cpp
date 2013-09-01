@@ -4,9 +4,12 @@
 #include <sstream>
 #include <cstdlib>
 
+#include "WorldCreator.h"
+
 using namespace TowerDefense;
 
-Tower::Tower(float attackSpeed, float damage, float radius, int type) : FieldUnit("Tower") {
+Tower::Tower(float attackSpeed, float damage, float radius, int type, const WorldCreator * const creator) : 
+	FieldUnit("Tower"), mWorldCreator(creator) {
 
 	// установка начальных настроек башни
 
@@ -40,6 +43,92 @@ bool Tower::isMyAreaClicked(float x, float y) const {
 		   (y - getSetting("y").getValue() > 0);
 }
 
+// TODO: move to utilities.h
+inline float square(float x) { return x*x; }
+
+TowerDefense::Shot * Tower::shootEnemy(const std::set<TowerDefense::Enemy*> &enemies, float currentTime, int timeDelta) {
+		// проверяем времени с последнего выстрела больше ли прошло, чем башня позволяет
+		if ((currentTime - getSetting("last_shot").getValue()) < (getSetting("attack_speed").getValue() * 1000))
+			// стреляли
+			return 0;
+
+		TowerDefense::Shot * shot = 0;
+
+		// не стреляли, значит надо найти по кому стрелять, то есть в первого попавшегося (в контейнере)
+		for (BattleField::EnemiesSet::iterator unit_iterator = enemies.begin();
+			unit_iterator != enemies.end();
+			++unit_iterator) {
+
+				TowerDefense::Enemy * unit = *unit_iterator;
+
+				// пропускаем убитых врагов
+				if (unit->getSetting("current_HP").getValue() <= 0)
+					continue;
+				
+				// небольшой сдвиг - с целью того, чтобы выглядело как-будто мы стреляем
+				// с центра крыши башни
+				float tower_x = getSetting("x").getValue() + 0.5f;
+				float tower_y = getSetting("y").getValue() + 0.3f;
+				float unit_x  = unit->getSetting("x").getValue();
+				float unit_y  = unit->getSetting("y").getValue();
+
+				// проверяем расстояние до юнита
+				if ((square(tower_x - unit_x) + square(unit_y - tower_y)) < square(getSetting("radius").getValue())) {
+					// если меньше дистанции для башни - то создаем выстрел
+					shot = mWorldCreator->createShot();
+					if (!shot)
+						continue;
+					
+					shot->setSetting("damage",  getSetting("damage").getValue());
+					shot->setSetting("type",    getSetting("type").getValue());
+
+					// устанавливаем начальные x и y
+					shot->setSetting("tower_x", tower_x);
+					shot->setSetting("tower_y", tower_y);
+					
+					shot->setSetting("x", tower_x);
+					shot->setSetting("y", tower_y);
+					
+					// предсказываем, где окажется юнит
+					// то есть стреляем с упреждением
+					std::pair<float, float> target; bool do_update = false;
+					// можно было бы написать вот так:
+					// target = predictNextEnemyStep(unit, gShotLife, do_update);
+					// но это будет работать только для некоторых небольших соответствий
+					// между скоростями юнитов и полета снаряда. Поэтому сделаем сложнее
+					
+					// запомним настройки
+					float current_way_point = unit->getSetting("way_point_number").getValue();
+
+					// пошагово предсказываем, где окажется враг за время полета снаряда
+					for (int i = 0; i < gShotLife/timeDelta; ++i) {
+						target = unit->predictNextStep(timeDelta, do_update);
+						unit->setSetting("x", target.first);
+						unit->setSetting("y", target.second);
+						if (do_update)
+							unit->setSetting("way_point_number", unit->getSetting("way_point_number").getValue() + 1);
+					}
+
+					// вернем настройки на место
+					unit->setSetting("way_point_number", current_way_point);
+					unit->setSetting("x", unit_x); unit->setSetting("y", unit_y);
+
+					// место попадания
+					shot->setSetting("target_x", target.first + unit->getSetting("size_x").getValue()/2);
+					shot->setSetting("target_y", target.second + unit->getSetting("size_y").getValue()/2);
+
+					shot->addLink(unit);
+					setSetting("last_shot", currentTime);
+
+					// выстрелили - выходим из цикла по юнитам
+					break;
+				}
+		}
+
+		return shot;
+}
+
+
 void TowerSlot::doRender() const {
 	// отрисовываем слот
 	mDrawHelper.drawSprite("tower_slot", getSetting("x").getValue(), getSetting("y").getValue());
@@ -66,7 +155,7 @@ bool TowerSlot::isMyAreaClicked(float x, float y) const {
 		   (y - getSetting("y").getValue() > 0);
 }
 
-Enemy::Enemy(float HP, float speed, int type) : FieldUnit("Enemy") {
+Enemy::Enemy(float HP, float speed, int type, const WorldCreator * const creator) : FieldUnit("Enemy"), mWorldCreator(creator) {
 
 	// установка настроек "врагов"
 
@@ -95,6 +184,73 @@ Enemy::Enemy(float HP, float speed, int type) : FieldUnit("Enemy") {
 	std::stringstream res_name;
 	res_name << "enemy_" << int(getSetting("type").getValue()) << std::flush;
 	mResourceName = res_name.str();
+}
+
+// TODO: move to utilities.h
+// проверка что x, y между x1, y1 и x2, y2 (в прямоугольнике)
+inline float max(float a, float b) { return a > b ? a : b; }
+inline float min(float a, float b) { return a < b ? a : b; }
+inline bool checkInBounds(float x1, float y1, float x, float y, float x2, float y2) {
+	return (min(x, max(x1, x2)) == x) && (min(y, max(y1, y2)) == y) && (max(x, min(x1, x2)) == x) && (max(y, min(y1, y2)) == y);
+}
+
+std::pair<float, float> Enemy::predictNextStep(int timeDelta, bool &updateWaypoint) {
+	updateWaypoint = false;
+
+	// Получаем следующую точку следования по карте
+	WorldCreator::WayPoint entry_point, next_point, current_point;
+	entry_point.first = getSetting("entry_x").getValue();
+	entry_point.second = getSetting("entry_y").getValue();
+	int way_point_number = int(getSetting("way_point_number").getValue());
+	
+	current_point = mWorldCreator->getWayPoint(entry_point, way_point_number);
+	next_point = mWorldCreator->getWayPoint(entry_point, way_point_number + 1);
+
+	std::pair<float, float> point;
+	point.first = getSetting("x").getValue();
+	point.second = getSetting("y").getValue();
+
+	// Если следующая - это старт - то возвращаем текущую
+	if ((next_point.first == entry_point.first) && (next_point.second == entry_point.second))
+		return point;
+
+	// вычисляем ход
+	float delta_x = (next_point.first - current_point.first) * 
+		getSetting("speed").getValue() / (1000 / timeDelta);  
+	float delta_y = (next_point.second - current_point.second) *
+		getSetting("speed").getValue() / (1000 / timeDelta);  
+
+	// если выходим за пределы текущего прямоугольника, надо все обновить
+	if (!checkInBounds(next_point.first, next_point.second, 
+		            point.first + delta_x, point.second + delta_y, 
+					current_point.first, current_point.second)) {
+		updateWaypoint = true;
+
+		// тут происходит следующее
+		// вектор (x + delta_x, y + delta_y) вышел за пределы текущего прямоугольника, ограниченного контрольными точками
+		// мало того, что надо обновить контрольную точку, так надо и подкорректировать вектор
+		// длина вектора (delta_x, delta_y) корректируется исходя из подобия прямоугольных треугольников
+		// сама же точка, откуда откладывается этот вектор - точка следующей контрольной точки
+		// меняется и направление вектора - туда, куда указывает еще более следующая контрольная точка
+
+		float move_distance = sqrtf(square(delta_x) + square(delta_y));
+		float move_distance_new = sqrtf(square(next_point.first - point.first - delta_x) + square(next_point.second - point.second - delta_y));
+		point = next_point; current_point = next_point;
+		next_point = mWorldCreator->getWayPoint(entry_point, way_point_number + 2);
+		delta_x =  (next_point.first - current_point.first) * 
+					getSetting("speed").getValue() / (1000 / timeDelta) *  
+					move_distance_new / move_distance;
+		delta_y =  (next_point.second - current_point.second) *
+					getSetting("speed").getValue() / (1000 / timeDelta) *  
+					move_distance_new / move_distance;
+
+		// этим самым мы добиваемся плавности движения, особенно если дорога кривая
+	}
+
+	point.first += delta_x;
+	point.second += delta_y;
+
+	return point;
 }
 
 void Enemy::doRender() const {
@@ -230,9 +386,6 @@ void BattleField::delUnit(FieldUnit * unit) {
 		// и удаляем
 		layer_iterator->second.erase(unit_index);
 
-	// Также удаляем все упоминания
-	delConnection(unit);
-
 	// Удаляем в любом случае, так как попросили удалить
 	delete unit;
 }
@@ -261,41 +414,6 @@ BattleField::~BattleField() {
 			delete (*unit);
 }
 
-void BattleField::addConnection(TowerDefense::Shot * firstUnit, TowerDefense::Enemy * secondUnit) {
-	// Добавляем только ненулевые объекты
-	if (firstUnit && secondUnit)
-		mUnitConnections.push_back(BattleField::ConnectedPair(firstUnit, secondUnit));
-}
-
-void BattleField::delConnection(FieldUnit * unit) {
-	std::list<BattleField::ConnectionsList::iterator> entries_to_delete;
-
-	// Сначала набираем список на удаление
-	for (BattleField::ConnectionsList::iterator entry = mUnitConnections.begin();
-		entry != mUnitConnections.end();
-		++entry)
-		// удаляем любую связь!
-		// что слева, что справа
-		if ((entry->first == unit) || (entry->second == unit)) 
-			entries_to_delete.push_back(entry);
-
-	// удаляем по списку
-	for (std::list<BattleField::ConnectionsList::iterator>::iterator pair_to_delete = entries_to_delete.begin();
-		pair_to_delete != entries_to_delete.end();
-		++pair_to_delete)
-		mUnitConnections.erase(*pair_to_delete);
-}
-
-TowerDefense::Enemy * BattleField::getConnectedUnit(TowerDefense::Shot * unit) {
-	// поиск связи по первому вхождению
-	for (BattleField::ConnectionsList::iterator entry = mUnitConnections.begin();
-		entry != mUnitConnections.end();
-		++entry)
-		// считается найденным, если он ссылается (а не на него)
-		if (entry->first == unit)
-			return entry->second;
-	return 0;
-}
 
 void BattleField::addShot(TowerDefense::Shot* shot) {
 	if (0 != shot)

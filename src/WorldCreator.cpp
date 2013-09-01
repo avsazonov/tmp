@@ -62,11 +62,11 @@ TowerDefense::Tower * WorldCreator::createTower(WorldCreator::TOWERTYPE towerTyp
 	// создание башни в зависимости от запрошенного типа
 	Tower * tower = 0;
 	if (TOWER_1 == towerType) 
-		tower = new Tower(1, 20, 4, towerType + 1);
+		tower = new Tower(1, 20, 4, towerType + 1, this);
 	else if (TOWER_2 == towerType)
-		tower = new Tower(2, 50, 3, towerType + 1);
+		tower = new Tower(2, 50, 3, towerType + 1, this);
 	else if (TOWER_3 == towerType) 
-		tower = new Tower(4, 125, 2, towerType + 1);
+		tower = new Tower(4, 125, 2, towerType + 1, this);
 	return tower;
 };
 
@@ -74,11 +74,11 @@ TowerDefense::Enemy * WorldCreator::createEnemy(WorldCreator::ENEMYTYPE enemyTyp
 	// создание врага в зависимости от запрошенного типа
 	Enemy * enemy = 0;
 	if (ENEMY_1 == enemyType) 
-		enemy = new Enemy(50, 1.f, enemyType + 1);
+		enemy = new Enemy(50, 1.f, enemyType + 1, this);
 	else if (ENEMY_2 == enemyType)
-		enemy = new Enemy(100, 0.5f, enemyType + 1);
+		enemy = new Enemy(100, 0.5f, enemyType + 1, this);
 	else if (ENEMY_3 == enemyType)
-		enemy = new Enemy(200, 0.25f, enemyType + 1);
+		enemy = new Enemy(200, 0.25f, enemyType + 1, this);
 	return enemy;
 };
 
@@ -87,17 +87,17 @@ TowerDefense::Shot * WorldCreator::createShot() const {
 	return new Shot;
 }
 
-WorldCreator::WayPoint WorldCreator::getWayPoint(WayPoint entry, int wayPointNumber) {
+WorldCreator::WayPoint WorldCreator::getWayPoint(WayPoint entry, int wayPointNumber) const {
 
 	// если ноль, то это вход
 	if (0 == wayPointNumber)
 		return entry;
 
-	Paths::iterator path_iterator;
+	Paths::const_iterator path_iterator;
 
 	// Ищем путь, соотвествующий входу
-	for (path_iterator = mMapPaths.begin();
-		path_iterator != mMapPaths.end();
+	for (path_iterator = mMapPaths.cbegin();
+		path_iterator != mMapPaths.cend();
 		++path_iterator) 
 		if ((path_iterator->at(0).first == entry.first) && (path_iterator->at(0).second == entry.second))
 			break;

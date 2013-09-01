@@ -39,16 +39,22 @@ protected:
 	virtual void doRender() const = 0;
 };
 
+class WorldCreator;
+
 namespace TowerDefense {
 
+	class Enemy;
+	class Shot;
 	// Объекты башни. Характеризуются скорострельностью, уроном и дальностью поражения.
 	// тип определяет ресурс для отображения
 	class Tower : public FieldUnit {
 		std::string mResourceName;
+		const WorldCreator * const mWorldCreator;
 	public:
-		Tower(float attackSpeed, float damage, float radius, int type);
+		Tower(float attackSpeed, float damage, float radius, int type, const WorldCreator * const creator);
 		bool isClickable() const { return true; }
 		bool isMyAreaClicked(float x, float y) const;
+		TowerDefense::Shot * shootEnemy(const std::set<TowerDefense::Enemy*> &enemies, float currentTime, int timeDelta);
 	protected:
 		virtual void doRender() const;
 	};
@@ -67,9 +73,10 @@ namespace TowerDefense {
 	// тип определяет ресурс для отображения
 	class Enemy : public FieldUnit {
 		std::string mResourceName;
+		const WorldCreator * const mWorldCreator;
 	public:
-		Enemy(float HP, float speed, int type);
-
+		Enemy(float HP, float speed, int type, const WorldCreator * const);
+		std::pair<float, float> predictNextStep(int timeDelta, bool &do_update);
 	protected:
 		virtual void doRender() const;
 	};
@@ -96,8 +103,12 @@ namespace TowerDefense {
 
 	// Объект выстрела.
 	class Shot : public FieldUnit {
+		Enemy * mLinkedUnit;
 	public:
 		Shot();
+		
+		void addLink(Enemy * linkedUnit) { mLinkedUnit = linkedUnit; }
+		Enemy * getLinked() { return mLinkedUnit; }
 
 	protected:
 		virtual void doRender() const;
@@ -170,20 +181,6 @@ public:
 	void addPathCell(TowerDefense::PathCell*);
 	const PathCellsSet& getPathCells();
 	void delPathCell(TowerDefense::PathCell*);
-
-	// добавление связи между двумя объектами
-	void addConnection(TowerDefense::Shot * firstUnit, TowerDefense::Enemy * secondUnit);
-
-	// удаление связей объекта
-	// сам объект не трогается
-	// удаляются любые связи!
-	void delConnection(FieldUnit * unit);
-
-	// получение связанного объекта
-	// связь найдена, если найден первый объект,
-	// то есть тот, который ссылается, а не на
-	// который ссылаются. firstUnit из addConnection
-	TowerDefense::Enemy * getConnectedUnit(TowerDefense::Shot * unit);
 
 	// ссылки на карты
 	const BattleMap& getClickableUnits();

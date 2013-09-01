@@ -43,7 +43,7 @@ public:
 	virtual const PointsList& getMapEntries() const;
 
 	// возвращает точку следования врага для заданного входа
-	virtual WayPoint getWayPoint(WayPoint entry, int wayPointNumber);
+	virtual WayPoint getWayPoint(WayPoint entry, int wayPointNumber) const;
 
 protected:
 	PointsList mMapEntries;

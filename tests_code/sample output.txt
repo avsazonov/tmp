@@ -1,7 +1,6 @@
 === Starting tests ===
 battlefield_tests: 1: passed
 battlefield_tests: 2: passed
-battlefield_tests: 3: passed
 gamecontrols_tests: 1: passed
 gamecontrols_tests: 2: passed
 gameobject_tests: 1: passed
