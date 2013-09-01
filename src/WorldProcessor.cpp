@@ -138,15 +138,7 @@ inline bool checkUnitOut(FieldUnit * unit, float cellsX, float cellsY) {
 		   (unit->getSetting("y").getValue() >= cellsY + unit->getSetting("size_y").getValue()); 
 }
 
-void WorldProcessor::processEnemies(int timeDelta) {
-	BattleField::UnitsOnLayer to_delete;
-
-	// проходим по всем врагам
-	for (BattleField::UnitsOnLayer::iterator unit_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).begin(); 
-			unit_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).end(); 
-			++unit_iterator) {
-		FieldUnit * unit = *unit_iterator;
-
+void WorldProcessor::moveEnemy(FieldUnit * unit, int timeDelta) {
 		// двигаем врага
 		bool update_waypoint = false;
 		StepPoint next_enemy_step = predictNextEnemyStep(unit, timeDelta, update_waypoint);
@@ -158,6 +150,18 @@ void WorldProcessor::processEnemies(int timeDelta) {
 		// он используется еще для вычисления цели выстрела
 		if (update_waypoint)
 			unit->setSetting("way_point_number", unit->getSetting("way_point_number").getValue() + 1);
+}
+
+void WorldProcessor::processEnemies(int timeDelta) {
+	BattleField::UnitsOnLayer to_delete;
+
+	// проходим по всем врагам
+	for (BattleField::UnitsOnLayer::iterator unit_iterator = (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).begin(); 
+			unit_iterator != (mBattleField->getUnitsOnLayer(TowerDefense::gEnemyLayer)).end(); 
+			++unit_iterator) {
+		FieldUnit * unit = *unit_iterator;
+
+		moveEnemy(unit, timeDelta);
 
 		// если враг уехал за экран - значит сбежал, 
 		// и мы его помечаем на удаление

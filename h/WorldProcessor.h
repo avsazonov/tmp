@@ -77,6 +77,9 @@ protected:
 	virtual bool doOneShot(FieldUnit * shot, int timeDelta); // returns true if needed to delete shot
 	virtual void moveShot(FieldUnit * shot, int timeDelta);
 
+	// refactoring, moving enemies
+	virtual void moveEnemy(FieldUnit * enemy, int timeDelta);
+
 	// увеличивают статистику на единицу
 	virtual void updateKilled(float type);
 	virtual void updateAlive(float type);

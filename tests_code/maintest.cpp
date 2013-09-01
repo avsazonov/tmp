@@ -226,6 +226,20 @@ void worldprocessor_test_group_type::object::test<1>() {
 	ensure_equals("shot destroyed", battlefield.getUnitsOnLayer(TowerDefense::gShotLayer).size() == 0, true);
 }
 
+template<>
+template<>
+void worldprocessor_test_group_type::object::test<2>() {
+	world_processor->initStatistics();
+	enemy->setSetting("way_point_number", 3.f);
+	enemy->setSetting("entry_x", 20.f);
+	enemy->setSetting("entry_y",  3.f);
+	float speed = enemy->getSetting("speed").getValue();
+	float type = enemy->getSetting("type").getValue();
+	for (int i = 0; i < int(speed * 18 /* cells */ * 10 /* deltas in second */) ; ++i) 
+		world_processor->processEnemies(100);
+	ensure_equals("alive tank destroyed", battlefield.getUnitsOnLayer(TowerDefense::gEnemyLayer).size(), 0);
+	ensure_equals("alive statistics updated", world_processor->mAliveStatistics[type], 1);
+}
 
 tut::test_runner_singleton runner;
 
