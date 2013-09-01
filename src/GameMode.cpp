@@ -26,7 +26,7 @@ void PreparingFieldMode::clearSlots() {
 	BattleField::BattleMap const * clickable_units = &mBattleField->getClickableUnits();
 
 	// Убираем все слоты с карты
-	BattleField::UnitsOnLayer to_delete;
+	BattleField::TowerSlotsSet to_delete;
 	// проходим по всем z для нажимабельных объектов
 	for (BattleField::BattleMap::const_iterator layer_iterator = clickable_units->begin();
 		layer_iterator != clickable_units->end();
@@ -37,13 +37,13 @@ void PreparingFieldMode::clearSlots() {
 			++unit_iterator)
 			// если встретили слот - добавляем в список на удаление
 			if ((*unit_iterator)->getObjectName().compare("TowerSlot") == 0)
-				to_delete.insert(*unit_iterator);
+				to_delete.insert(dynamic_cast<TowerSlot*>(*unit_iterator));
 
 	// собственно удаление
-	for (BattleField::UnitsOnLayer::iterator unit_iterator = to_delete.begin();
+	for (BattleField::TowerSlotsSet::iterator unit_iterator = to_delete.begin();
 		unit_iterator != to_delete.end();
 		++unit_iterator)
-		mBattleField->delUnit(*unit_iterator);
+		mBattleField->delTowerSlot(*unit_iterator);
 }
 
 bool PreparingFieldMode::canStart() {
@@ -95,7 +95,8 @@ GameMode * PreparingFieldMode::processUserEvent(float x, float y) {
 
 		// случай, когда нажали на слот или башню
 		if (!mTowerChoiceMenu->isEnabled()) {
-			mLastClickedUnit = 0;
+			mLastClickedTower = 0;
+			mLastClickedSlot  = 0;
 
 			// обходим все нажимабельные объекты на карте
 			for (BattleField::BattleMap::const_reverse_iterator layer_iterator = clickable_units->rbegin();
@@ -107,29 +108,30 @@ GameMode * PreparingFieldMode::processUserEvent(float x, float y) {
 
 					// и узнаем, нажали ли на него
 					if ((*unit_iterator)->isMyAreaClicked(DrawHelper::getCellX(x), DrawHelper::getCellY(y))) {
-						mLastClickedUnit = (*unit_iterator);
+						if ((*unit_iterator)->getObjectName().compare("TowerSlot") == 0)
+							mLastClickedSlot = dynamic_cast<TowerSlot*>(*unit_iterator);
+						else if ((*unit_iterator)->getObjectName().compare("Tower") == 0)
+							mLastClickedTower = dynamic_cast<Tower*>(*unit_iterator);
 						break;
 					}
 
 				// если нашли, выходим
-				if (mLastClickedUnit)
+				if (mLastClickedSlot || mLastClickedTower)
 					break;
 			}
 
-			if (!mLastClickedUnit) 
+			if ((0 == mLastClickedSlot) && (0 == mLastClickedTower)) 
 				return this;
 
 			// если нажали на башню или слот - активируем меню
-			if ((mLastClickedUnit->getObjectName().compare("TowerSlot") == 0) ||
-				(mLastClickedUnit->getObjectName().compare("Tower") == 0))
-				mTowerChoiceMenu->enable();
+			mTowerChoiceMenu->enable();
 
 		} else {
 			// тут у нас случай, когда меню активно, и мы его тогда выключаем, куда бы не нажали
 			mTowerChoiceMenu->disable();
 
 			// особенно если на башню или слот не нажимали
-			if (!mLastClickedUnit)
+			if ((0 == mLastClickedSlot) && (0 == mLastClickedTower)) 
 				return this;
 
 			// нам нажали на меню выбора типа башни. если куда-то еще - то ничего уже не делается
@@ -140,13 +142,16 @@ GameMode * PreparingFieldMode::processUserEvent(float x, float y) {
 					        (mTowerChoiceMenu->getSetting("size_y").getValue()));
 
 				// куда ставить башню
+				FieldUnit * mLastClickedUnit = mLastClickedSlot ? (FieldUnit*)mLastClickedSlot : (FieldUnit*)mLastClickedTower;
 				float new_unit_x = mLastClickedUnit->getSetting("x").getValue(),
 					  new_unit_y = mLastClickedUnit->getSetting("y").getValue();
 
 				// всегда удаляем то что там раньше было
-				mBattleField->delUnit(mLastClickedUnit);
+				if (0 != mLastClickedSlot)
+					mBattleField->delTowerSlot(mLastClickedSlot);
+				else
+					mBattleField->delTower(mLastClickedTower);
 				
-				mLastClickedUnit = 0;
 				TowerDefense::Tower *tower = 0;
 
 				// добавляем башню на поле

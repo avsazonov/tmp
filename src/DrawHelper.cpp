@@ -60,12 +60,15 @@ ScaleMetrics             * DrawHelper::mScaleMetrics = 0;
 CIw2DFont                * DrawHelper::mFont         = 0;
 
 void DrawHelper::construct(float cellsX, float cellsY) {
-	/*
+	
 	// Создаем, если не создан, объект перевода координат
 	if (!mScaleMetrics) {
-		mScaleMetrics = new ScaleMetrics(cellsX, cellsY, float(Iw2DGetSurfaceWidth()), float(Iw2DGetSurfaceHeight()));
+		mScaleMetrics = new ScaleMetrics(cellsX, cellsY, 
+			//float(Iw2DGetSurfaceWidth()), float(Iw2DGetSurfaceHeight())
+			float(100), float(100) // 100x100 display for testing
+		);
 	}
-
+	/*
 	// Создаем таблицу спрайтов
 	if (!mSprites)
 		mSprites = new DrawHelper::SpritesTable;
@@ -188,11 +191,11 @@ void DrawHelper::destruct() {
 	// Ставим 0 на тот случай
 	// если еще раз запустят construct
 	mSprites = 0;
-	
+	*/
 	// Объект перевода координат тоже чистим
 	delete mScaleMetrics; 
 	mScaleMetrics = 0;
-	
+	/*
 	// И шрифт
 	delete mFont; 
 	mFont = 0;

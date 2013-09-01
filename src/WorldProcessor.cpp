@@ -70,7 +70,7 @@ inline bool checkInBounds(float x1, float y1, float x, float y, float x2, float 
 	return (min(x, max(x1, x2)) == x) && (min(y, max(y1, y2)) == y) && (max(x, min(x1, x2)) == x) && (max(y, min(y1, y2)) == y);
 }
 
-WorldProcessor::StepPoint WorldProcessor::predictNextEnemyStep(FieldUnit * enemy, int timeDelta, bool &updateWaypoint) {
+WorldProcessor::StepPoint WorldProcessor::predictNextEnemyStep(TowerDefense::Enemy * enemy, int timeDelta, bool &updateWaypoint) {
 
 	updateWaypoint = false;
 
@@ -138,7 +138,7 @@ inline bool checkUnitOut(FieldUnit * unit, float cellsX, float cellsY) {
 		   (unit->getSetting("y").getValue() >= cellsY + unit->getSetting("size_y").getValue()); 
 }
 
-void WorldProcessor::moveEnemy(FieldUnit * unit, int timeDelta) {
+void WorldProcessor::moveEnemy(TowerDefense::Enemy * unit, int timeDelta) {
 		// двигаем врага
 		bool update_waypoint = false;
 		StepPoint next_enemy_step = predictNextEnemyStep(unit, timeDelta, update_waypoint);
@@ -153,13 +153,13 @@ void WorldProcessor::moveEnemy(FieldUnit * unit, int timeDelta) {
 }
 
 void WorldProcessor::processEnemies(int timeDelta) {
-	BattleField::UnitsOnLayer to_delete;
+	BattleField::EnemiesSet to_delete;
 
 	// проходим по всем врагам
-	for (BattleField::UnitsOnLayer::iterator unit_iterator = (mBattleField->getEnemies()).begin(); 
+	for (BattleField::EnemiesSet::iterator unit_iterator = (mBattleField->getEnemies()).begin(); 
 			unit_iterator != (mBattleField->getEnemies()).end(); 
 			++unit_iterator) {
-		FieldUnit * unit = *unit_iterator;
+		TowerDefense::Enemy * unit = *unit_iterator;
 
 		moveEnemy(unit, timeDelta);
 
@@ -178,13 +178,13 @@ void WorldProcessor::processEnemies(int timeDelta) {
 	}
 
 	// удаляем помеченные с поля битвы
-	for (BattleField::UnitsOnLayer::iterator unit_iterator = to_delete.begin(); 
+	for (BattleField::EnemiesSet::iterator unit_iterator = to_delete.begin(); 
 		unit_iterator != to_delete.end(); 
 		++unit_iterator)
-		mBattleField->delUnit(*unit_iterator);
+		mBattleField->delEnemy(*unit_iterator);
 }
 
-void WorldProcessor::moveShot(FieldUnit * shot, int timeDelta) {
+void WorldProcessor::moveShot(TowerDefense::Shot * shot, int timeDelta) {
 	float delta_x = (shot->getSetting("target_x").getValue() - shot->getSetting("tower_x").getValue()) / (gShotLife / timeDelta); 
 	float delta_y = (shot->getSetting("target_y").getValue() - shot->getSetting("tower_y").getValue()) / (gShotLife / timeDelta);
 
@@ -192,12 +192,12 @@ void WorldProcessor::moveShot(FieldUnit * shot, int timeDelta) {
 	shot->setSetting("y", shot->getSetting("y").getValue() + delta_y);
 }
 
-bool WorldProcessor::doOneShot(FieldUnit * shot, int timeDelta) {
+bool WorldProcessor::doOneShot(TowerDefense::Shot * shot, int timeDelta) {
 	// если "попали", в данном случае вылетели за пределы прямоугольника "координаты цели-башня"
 			if (!checkInBounds(shot->getSetting("target_x").getValue(), shot->getSetting("target_y").getValue(),
 							   shot->getSetting("x").getValue(), shot->getSetting("y").getValue(),
 							   shot->getSetting("tower_x").getValue(), shot->getSetting("tower_y").getValue())) {
-				FieldUnit * unit = mBattleField->getConnectedUnit(shot);
+				TowerDefense::Enemy * unit = mBattleField->getConnectedUnit(shot);
 				if (unit) {
 					// уменьшаем жизнь связанного с выстрелом врага на размер урона
 					unit->setSetting("current_HP", unit->getSetting("current_HP").getValue() - shot->getSetting("damage").getValue());
@@ -206,7 +206,7 @@ bool WorldProcessor::doOneShot(FieldUnit * shot, int timeDelta) {
 					// если убили - удаляем
 					if (unit->getSetting("current_HP").getValue() <= 0) {
 						updateKilled(unit->getSetting("type").getValue());
-						mBattleField->delUnit(unit);
+						mBattleField->delEnemy(unit);
 					}
 				}
 				
@@ -223,22 +223,22 @@ bool WorldProcessor::doOneShot(FieldUnit * shot, int timeDelta) {
 
 void WorldProcessor::processShots(int timeDelta) {
 
-	BattleField::UnitsOnLayer to_delete;
+	BattleField::ShotsSet to_delete;
 
 	// проходим по всем выстрелам
-	for (BattleField::UnitsOnLayer::iterator shot_iterator = (mBattleField->getShots()).begin();
+	for (BattleField::ShotsSet::iterator shot_iterator = (mBattleField->getShots()).begin();
 		shot_iterator != (mBattleField->getShots()).end();
 		++shot_iterator) {
-			FieldUnit * shot = *shot_iterator;
+		TowerDefense::Shot * shot = *shot_iterator;
 		if (doOneShot(shot, timeDelta))
 			to_delete.insert(shot);
 	}
 
-	for (BattleField::UnitsOnLayer::iterator unit_iterator = to_delete.begin(); unit_iterator != to_delete.end(); ++unit_iterator)
-		mBattleField->delUnit(*unit_iterator);
+	for (BattleField::ShotsSet::iterator unit_iterator = to_delete.begin(); unit_iterator != to_delete.end(); ++unit_iterator)
+		mBattleField->delShot(*unit_iterator);
 }
 
-void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLayer &enemies, int timeDelta) {
+void WorldProcessor::doTowerShot(TowerDefense::Tower * tower, const BattleField::EnemiesSet &enemies, int timeDelta) {
 	// проверяем времени с последнего выстрела больше ли прошло, чем башня позволяет
 		if ((float(mTimeCounter) - tower->getSetting("last_shot").getValue()) < 
 		    ((tower)->getSetting("attack_speed").getValue() * 1000))
@@ -246,11 +246,11 @@ void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLa
 			return;
 
 		// не стреляли, значит надо найти по кому стрелять, то есть в первого попавшегося (в контейнере)
-		for (BattleField::UnitsOnLayer::iterator unit_iterator = enemies.begin();
+		for (BattleField::EnemiesSet::iterator unit_iterator = enemies.begin();
 			unit_iterator != enemies.end();
 			++unit_iterator) {
 
-				FieldUnit * unit = *unit_iterator;
+				TowerDefense::Enemy * unit = *unit_iterator;
 
 				// пропускаем убитых врагов
 				if (unit->getSetting("current_HP").getValue() <= 0)
@@ -321,11 +321,11 @@ void WorldProcessor::doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLa
 void WorldProcessor::processTowers(int timeDelta) {
 	
 	// проходим по всем башням
-	for (BattleField::UnitsOnLayer::iterator tower_iterator = (mBattleField->getTowers()).begin();
+	for (BattleField::TowersSet::iterator tower_iterator = (mBattleField->getTowers()).begin();
 	tower_iterator != (mBattleField->getTowers()).end();
 	++tower_iterator) {
 
-		FieldUnit * tower = *tower_iterator;
+		TowerDefense::Tower * tower = *tower_iterator;
 		
 		// может попасться слот, пропускаем
 		if (tower->getObjectName().compare("Tower") != 0)

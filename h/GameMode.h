@@ -53,6 +53,14 @@ public:
 
 };
 
+#include "FieldUnit.h"
+
+namespace tut
+{
+    template<typename T>
+    class test_object;
+}
+
 namespace TowerDefense {
 
 	class TowerChoiceMenu;
@@ -60,10 +68,15 @@ namespace TowerDefense {
 
 	// Режим подготовки поля к игре
 	class PreparingFieldMode : public GameMode {
+
+		template<typename T>
+		friend class tut::test_object;
+
 		// элемент управления - меню выбора башни
 		TowerChoiceMenu * mTowerChoiceMenu;
-		// последний нажатый элемент управления (башня или слот)
-		FieldUnit       * mLastClickedUnit;
+		// последний нажатый элемент управления
+		Tower           * mLastClickedTower;
+		TowerSlot       * mLastClickedSlot;
 		// кнопка старта
 		PlayButton      * mPlayButton;
 	public:
@@ -72,7 +85,7 @@ namespace TowerDefense {
 			WorldCreator& worldCreator,
 			WorldProcessor& worldProcessor) :
 			GameMode(battleField, gameControls, worldCreator, worldProcessor),
-			mPlayButton(0), mLastClickedUnit(0), mTowerChoiceMenu(0) {}
+			mPlayButton(0), mLastClickedTower(0), mLastClickedSlot(0), mTowerChoiceMenu(0) {}
 		
 		// подготовка режима
 		void initialize();

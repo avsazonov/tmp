@@ -71,14 +71,14 @@ protected:
 	virtual void processTowers(int timeDelta);
 
 	// refactoring, extracting processTowers
-	virtual void doTowerShot(FieldUnit * tower, const BattleField::UnitsOnLayer &enemies, int timeDelta);
+	virtual void doTowerShot(TowerDefense::Tower * tower, const BattleField::EnemiesSet &enemies, int timeDelta);
 	
 	// refactoring, extracting processShots. 
-	virtual bool doOneShot(FieldUnit * shot, int timeDelta); // returns true if needed to delete shot
-	virtual void moveShot(FieldUnit * shot, int timeDelta);
+	virtual bool doOneShot(TowerDefense::Shot * shot, int timeDelta); // returns true if needed to delete shot
+	virtual void moveShot(TowerDefense::Shot * shot, int timeDelta);
 
 	// refactoring, moving enemies
-	virtual void moveEnemy(FieldUnit * enemy, int timeDelta);
+	virtual void moveEnemy(TowerDefense::Enemy * enemy, int timeDelta);
 
 	// увеличивают статистику на единицу
 	virtual void updateKilled(float type);
@@ -90,7 +90,7 @@ protected:
 	typedef std::pair<float, float> StepPoint;
 
 	// вычисление следующей координаты врага
-	virtual StepPoint predictNextEnemyStep(FieldUnit * unit, int time_delta, bool &updateWaypoint);
+	virtual StepPoint predictNextEnemyStep(TowerDefense::Enemy * unit, int time_delta, bool &updateWaypoint);
 };
 
 #endif

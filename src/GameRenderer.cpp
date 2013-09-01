@@ -4,23 +4,35 @@
 
 void GameRenderer::renderBattleAndControls() const {
 
-	BattleField::BattleMap const * pBattleMap = &mBattleField->getBattleMap();
-	
-	BattleField::BattleMap::const_iterator    current_layer_entry;
-	BattleField::UnitsOnLayer::const_iterator current_unit_iterator;
+	for (BattleField::BackGroundCellsSet::iterator bgcell_iterator = mBattleField->getBackGroundCells().begin();
+		bgcell_iterator != mBattleField->getBackGroundCells().end();
+		++bgcell_iterator)
+		(*bgcell_iterator)->render();
 
-	// Цикл по всем уровням (std::map сортирована по ключам по умолчанию)
-	// Ключи - это слои
-	for (current_layer_entry = pBattleMap->begin(); 
-		current_layer_entry != pBattleMap->end(); 
-		++current_layer_entry)
-		// Проходим по всем объектам на уровне
-		for (current_unit_iterator = current_layer_entry->second.begin(); 
-			current_unit_iterator != current_layer_entry->second.end();
-			++current_unit_iterator)
-			// Отрисовываем объект. 
-			// layer = 0 автоматически пропускаются
-			(*current_unit_iterator)->render();
+	for (BattleField::PathCellsSet::iterator pathcell_iterator = mBattleField->getPathCells().begin();
+		pathcell_iterator != mBattleField->getPathCells().end();
+		++pathcell_iterator)
+		(*pathcell_iterator)->render();
+
+	for (BattleField::TowerSlotsSet::iterator towerslot_iterator = mBattleField->getTowerSlots().begin();
+		towerslot_iterator != mBattleField->getTowerSlots().end();
+		++towerslot_iterator)
+		(*towerslot_iterator)->render();
+
+	for (BattleField::TowersSet::iterator tower_iterator = mBattleField->getTowers().begin();
+		tower_iterator != mBattleField->getTowers().end();
+		++tower_iterator)
+		(*tower_iterator)->render();
+
+	for (BattleField::EnemiesSet::iterator enemy_iterator = mBattleField->getEnemies().begin();
+		enemy_iterator != mBattleField->getEnemies().end();
+		++enemy_iterator)
+		(*enemy_iterator)->render();
+
+	for (BattleField::ShotsSet::iterator shot_iterator = mBattleField->getShots().begin();
+		shot_iterator != mBattleField->getShots().end();
+		++shot_iterator)
+		(*shot_iterator)->render();
 
 	// Всегда поверх рисуем активные элементы управления
 	GameControls::ControlsList::const_iterator current_control_iterator;

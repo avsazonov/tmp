@@ -183,14 +183,14 @@ void Shot::doRender() const {
 		getSetting("size_y").getValue());
 }
 
-void BattleField::addUnit(FieldUnit * unit) {
+void BattleField::addClickableUnit(FieldUnit * unit) {
 	if (!unit)
 		return;
 
 	// добавление объекта на карту
 	// сразу сортируем по слоям
 	float layer = unit->getSetting("layer").getValue();
-	mBattleField[layer].insert(unit);
+	//mBattleField[layer].insert(unit);
 
 	// ну и если он нажимабельный, отдельно запоминаем
 	if (unit->isClickable())
@@ -261,7 +261,7 @@ BattleField::~BattleField() {
 			delete (*unit);
 }
 
-void BattleField::addConnection(FieldUnit * firstUnit, FieldUnit * secondUnit) {
+void BattleField::addConnection(TowerDefense::Shot * firstUnit, TowerDefense::Enemy * secondUnit) {
 	// Добавляем только ненулевые объекты
 	if (firstUnit && secondUnit)
 		mUnitConnections.push_back(BattleField::ConnectedPair(firstUnit, secondUnit));
@@ -286,7 +286,7 @@ void BattleField::delConnection(FieldUnit * unit) {
 		mUnitConnections.erase(*pair_to_delete);
 }
 
-FieldUnit * BattleField::getConnectedUnit(FieldUnit * unit) {
+TowerDefense::Enemy * BattleField::getConnectedUnit(TowerDefense::Shot * unit) {
 	// поиск связи по первому вхождению
 	for (BattleField::ConnectionsList::iterator entry = mUnitConnections.begin();
 		entry != mUnitConnections.end();
@@ -298,127 +298,91 @@ FieldUnit * BattleField::getConnectedUnit(FieldUnit * unit) {
 }
 
 void BattleField::addShot(TowerDefense::Shot* shot) {
-	/*
 	if (0 != shot)
 		mShots.insert(shot);
-	*/
-	addUnit(shot);
+	addClickableUnit(shot);
 }
 
 void BattleField::delShot(TowerDefense::Shot* shot) {
-	/*
 	mShots.erase(shot);
-	delete shot;
-	*/
 	delUnit(shot);
 }
 
 void BattleField::addEnemy(TowerDefense::Enemy* enemy) {
-	/*
 	if (0 != enemy)
 		mEnemies.insert(enemy);
-	*/
-	addUnit(enemy);
+	addClickableUnit(enemy);
 }
 
 void BattleField::delEnemy(TowerDefense::Enemy* enemy) {
-	/*
 	mEnemies.erase(enemy);
-	delete enemy;
-	*/
 	delUnit(enemy);
 }
 
 void BattleField::addTower(TowerDefense::Tower* tower) {
-	/*
 	if (0 != tower)
 		mTowers.insert(tower);
-	*/
-	addUnit(tower);
+	addClickableUnit(tower);
 }
 
 void BattleField::delTower(TowerDefense::Tower* tower) {
-	/*
 	mTowers.erase(tower);
-	delete tower;
-	*/
 	delUnit(tower);
 }
 
 void BattleField::addTowerSlot(TowerDefense::TowerSlot* towerSlot) {
-	/*
 	if (0 != towerSlot)
 		mTowerSlots.insert(towerSlot);
-	*/
-	addUnit(towerSlot);
+	addClickableUnit(towerSlot);
 }
 
 void BattleField::delTowerSlot(TowerDefense::TowerSlot* towerSlot) {
-	/*
 	mTowerSlots.erase(towerSlot);
-	delete towerSlot;
-	*/
 	delUnit(towerSlot);
 }
 
 void BattleField::addBackGroundCell(TowerDefense::BackGroundCell* bgCell) {
-	/*
 	if (0 != bgCell)
 		mBackGroundCells.insert(bgCell);
-	*/
-	addUnit(bgCell);
+	addClickableUnit(bgCell);
 }
 
 void BattleField::delBackGroundCell(TowerDefense::BackGroundCell* bgCell) {
-	/*
 	mBackGroundCells.erase(bgCell);
-	delete bgCell;
-	*/
 	delUnit(bgCell);
 }
 
 void BattleField::addPathCell(TowerDefense::PathCell* pathCell) {
-	/*
 	if (0 != pathCell)
 		mPathCells.insert(pathCell);
-	*/
-	addUnit(pathCell);
+	addClickableUnit(pathCell);
 }
 
 void BattleField::delPathCell(TowerDefense::PathCell* pathCell) {
-	/*
 	mPathCells.erase(pathCell);
-	delete pathCell;
-	*/
 	delUnit(pathCell);
 }
 
 const BattleField::ShotsSet& BattleField::getShots() {
-	//return mShots;
-	return getUnitsOnLayer(TowerDefense::gShotLayer);
+	return mShots;
 }
 
 const BattleField::EnemiesSet& BattleField::getEnemies() {
-	//return mEnemies;
-	return getUnitsOnLayer(TowerDefense::gEnemyLayer);
+	return mEnemies;
 }
 
 const BattleField::TowersSet& BattleField::getTowers() {
-	//return mTowers;
-	return getUnitsOnLayer(TowerDefense::gTowerLayer);
+	return mTowers;
 }
 
 const BattleField::TowerSlotsSet& BattleField::getTowerSlots() {
-	//return mTowerSlots;
-	return getUnitsOnLayer(TowerDefense::gTowerLayer);
+	return mTowerSlots;
 }
 
 const BattleField::BackGroundCellsSet& BattleField::getBackGroundCells() {
-	//return mBackGroundCells;
-	return getUnitsOnLayer(TowerDefense::gBackGroundLayer);
+	return mBackGroundCells;
 }
 
 const BattleField::PathCellsSet& BattleField::getPathCells() {
-	//return mPathCells;
-	return getUnitsOnLayer(TowerDefense::gPathCellLayer);
+	return mPathCells;
 }

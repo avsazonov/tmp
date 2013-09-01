@@ -58,8 +58,7 @@ template<>
 void battlefield_test_group_type::object::test<2>() {
 	
 	battlefield.addShot(new TowerDefense::Shot);
-	ensure_equals("BattleField after adding one unit has one layer", battlefield.getBattleMap().size(), 1);
-	ensure_equals("BattleField getUnitsOnLayer return one unit", battlefield.getShots().size(), 1);
+	ensure_equals("BattleField after adding one shot has one shot", battlefield.getShots().size(), 1);
 
 	TowerDefense::Shot * shot;
 	battlefield.addShot(shot = new TowerDefense::Shot);
@@ -71,14 +70,15 @@ template<>
 template<>
 void battlefield_test_group_type::object::test<3>() {
 
-	FieldUnit * shot_one = new TowerDefense::Shot, * shot_two = new TowerDefense::Shot;
-	battlefield.addConnection(shot_one, shot_two);
-	battlefield.delConnection(shot_one);
-	ensure_not("BattleField deletes connections by first parameter", battlefield.getConnectedUnit(shot_one));
+	TowerDefense::Shot * shot = new TowerDefense::Shot;
+	TowerDefense::Enemy * enemy = new TowerDefense::Enemy(1, 1, 1);
+	battlefield.addConnection(shot, enemy);
+	battlefield.delConnection(shot);
+	ensure_not("BattleField deletes connections by first parameter", battlefield.getConnectedUnit(shot));
 
-	battlefield.addConnection(shot_one, shot_two);
-	battlefield.delConnection(shot_two);
-	ensure_not("BattleField deletes connections by second parameter", battlefield.getConnectedUnit(shot_one));
+	battlefield.addConnection(shot, enemy);
+	battlefield.delConnection(enemy);
+	ensure_not("BattleField deletes connections by second parameter", battlefield.getConnectedUnit(shot));
 }
 
 #include "GameControls.h"
@@ -241,6 +241,56 @@ void worldprocessor_test_group_type::object::test<2>() {
 	ensure_equals("alive tank destroyed", battlefield.getEnemies().size(), 0);
 	ensure_equals("alive statistics updated", world_processor->mAliveStatistics[type], 1);
 }
+
+#include "GameMode.h"
+
+struct preparingfieldmode_data {
+	TowerDefense::PreparingFieldMode * preparingfield_mode;
+	WorldCreator world_creator;
+	BattleField  battlefield;
+	WorldProcessor * world_processor;
+	TowerDefense::Tower * tower;
+	TowerDefense::TowerSlot * slot;
+	GameControls game_controls;
+
+	preparingfieldmode_data() : world_creator(battlefield), world_processor(0) {
+		world_creator.create(); 
+		battlefield.addTower(tower = world_creator.createTower(WorldCreator::TOWERTYPE::TOWER_1));
+		tower->setSetting("x", 17.f);
+		tower->setSetting("y",  2.f);
+		battlefield.addTowerSlot(slot = new TowerDefense::TowerSlot(10.f, 2.f));
+		world_processor = new WorldProcessor(world_creator, battlefield);
+
+		DrawHelper::construct(world_creator.getCellsX(), world_creator.getCellsY());
+
+		preparingfield_mode = new TowerDefense::PreparingFieldMode(battlefield, game_controls, world_creator, *world_processor);
+		preparingfield_mode->initialize();
+	}
+
+	~preparingfieldmode_data() {
+		delete world_processor;
+		delete preparingfield_mode;
+
+		DrawHelper::destruct();
+	}
+};
+
+typedef tut::test_group<preparingfieldmode_data> preparingfield_test_group_type;
+preparingfield_test_group_type preparingfield_test_group("preparingfield_tests");
+
+template<>
+template<>
+void preparingfield_test_group_type::object::test<1>() {
+	ensure_equals("test we have 16 + 1 tower slots", battlefield.getTowerSlots().size(), 17);
+	ensure_equals("test we have one tower", battlefield.getTowers().size(), 1);
+	preparingfield_mode->processUserEvent(DrawHelper::getScreenX(10.1f), DrawHelper::getScreenY(2.1f));
+	ensure_equals("test if menu tower choice menu appeared", preparingfield_mode->mTowerChoiceMenu->isEnabled(), true);
+	preparingfield_mode->processUserEvent(DrawHelper::getScreenX(10.1f), DrawHelper::getScreenY(5.6f));
+	ensure_equals("test if menu tower choice menu disabled", preparingfield_mode->mTowerChoiceMenu->isEnabled(), false);
+	ensure_equals("test if tower slot became tower", battlefield.getTowers().size(), 2);
+	ensure_equals("test we have one less tower slots", battlefield.getTowerSlots().size(), 16);
+}
+
 
 tut::test_runner_singleton runner;
 

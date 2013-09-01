@@ -104,6 +104,12 @@ namespace TowerDefense {
 	};
 }
 
+namespace tut
+{
+    template<typename T>
+    class test_object;
+}
+
 // Игровое поле состоит из привязанных по уровням отображения
 // списков объектов на нём.
 // Сам удаляет все объекты!
@@ -112,24 +118,20 @@ namespace TowerDefense {
 // объекты на стеке, если их необходимо добавлять на игровое поле.
 class BattleField {
 
+	template<typename T>
+	friend class tut::test_object;
+
 public:
 	typedef std::set<FieldUnit*>		   UnitsOnLayer;
 	typedef std::map<float, UnitsOnLayer>  BattleMap;
-	/*
+	
 	typedef std::set<TowerDefense::Shot*>			   ShotsSet;
 	typedef std::set<TowerDefense::Enemy*>			   EnemiesSet;
 	typedef std::set<TowerDefense::Tower*>			   TowersSet;
 	typedef std::set<TowerDefense::TowerSlot*>		   TowerSlotsSet;
 	typedef std::set<TowerDefense::BackGroundCell*>	   BackGroundCellsSet;
 	typedef std::set<TowerDefense::PathCell*>		   PathCellsSet;
-	*/
-	typedef UnitsOnLayer ShotsSet;
-	typedef UnitsOnLayer EnemiesSet;
-	typedef UnitsOnLayer TowersSet;
-	typedef UnitsOnLayer TowerSlotsSet;
-	typedef UnitsOnLayer BackGroundCellsSet;
-	typedef UnitsOnLayer PathCellsSet;
-
+	
 private:
 
 	ShotsSet			mShots;
@@ -140,13 +142,13 @@ private:
 	PathCellsSet		mPathCells;
 
 	// добавление объекта на карту
-	void addUnit(FieldUnit * unit);
-
-public:
+	void addClickableUnit(FieldUnit * unit);
 
 	// соответственно удаление
 	// в том числе и из памяти
 	void delUnit(FieldUnit * unit);
+
+public:
 
 	// refactoring: methods definition
 	// del methods deletes from memory
@@ -170,7 +172,7 @@ public:
 	void delPathCell(TowerDefense::PathCell*);
 
 	// добавление связи между двумя объектами
-	void addConnection(FieldUnit * firstUnit, FieldUnit * secondUnit);
+	void addConnection(TowerDefense::Shot * firstUnit, TowerDefense::Enemy * secondUnit);
 
 	// удаление связей объекта
 	// сам объект не трогается
@@ -181,11 +183,11 @@ public:
 	// связь найдена, если найден первый объект,
 	// то есть тот, который ссылается, а не на
 	// который ссылаются. firstUnit из addConnection
-	FieldUnit * getConnectedUnit(FieldUnit * unit);
+	TowerDefense::Enemy * getConnectedUnit(TowerDefense::Shot * unit);
 
 	// ссылки на карты
 	const BattleMap& getClickableUnits();
-	const BattleMap& getBattleMap();
+	
 
 	virtual ~BattleField();
 
@@ -193,9 +195,10 @@ private:
 	const UnitsOnLayer& getUnitsOnLayer(float layer) {
 		return mBattleField[layer];
 	}
+	const BattleMap& getBattleMap();
 
-	typedef std::pair<FieldUnit*, FieldUnit*> ConnectedPair;
-	typedef std::list<ConnectedPair>          ConnectionsList;
+	typedef std::pair<TowerDefense::Shot*, TowerDefense::Enemy*> ConnectedPair;
+	typedef std::list<ConnectedPair>							 ConnectionsList;
 
 	ConnectionsList mUnitConnections;
 	BattleMap       mBattleField;

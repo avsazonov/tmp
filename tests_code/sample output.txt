@@ -6,6 +6,7 @@ gamecontrols_tests: 1: passed
 gamecontrols_tests: 2: passed
 gameobject_tests: 1: passed
 gameobject_tests: 2: passed
+preparingfield_tests: 1: passed
 worldcreator_tests: 1: passed
 worldprocessor_tests: 1: passed
 worldprocessor_tests: 2: passed
