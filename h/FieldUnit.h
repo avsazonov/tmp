@@ -197,16 +197,7 @@ public:
 	virtual ~BattleField();
 
 private:
-	const UnitsOnLayer& getUnitsOnLayer(float layer) {
-		return mBattleField[layer];
-	}
-	const BattleMap& getBattleMap();
-
-	typedef std::pair<TowerDefense::Shot*, TowerDefense::Enemy*> ConnectedPair;
-	typedef std::list<ConnectedPair>							 ConnectionsList;
-
-	ConnectionsList mUnitConnections;
-	BattleMap       mBattleField;
+	
 	BattleMap       mClickableUnits;
 };
 

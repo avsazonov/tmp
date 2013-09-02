@@ -407,16 +407,7 @@ void BattleField::delUnit(FieldUnit * unit) {
 
 	BattleField::BattleMap::iterator layer_iterator, clickable_set_layer_iterator;
 
-	// Ищем подходящий уровень для объект
-	layer_iterator = mBattleField.find(unit->getSetting("layer").getValue());
 	clickable_set_layer_iterator = mClickableUnits.find(unit->getSetting("layer").getValue());
-
-	// Не нашли - просто удаляем объект
-	if (mBattleField.end() == layer_iterator) {
-		// В нажимабельных не смотрим, так как туда добавляет addUnit
-		delete unit;
-		return;
-	}
 
 	// Удаляем сам элемент во всех множествах
 	BattleField::UnitsOnLayer::iterator unit_index;
@@ -428,12 +419,6 @@ void BattleField::delUnit(FieldUnit * unit) {
 			// удаляем запись об объекте
 			clickable_set_layer_iterator->second.erase(unit_index);
 
-	// объект есть на карте, так как иначе мы бы уже вышли
-	// ищем его индекс в слое
-	if ((unit_index = layer_iterator->second.find(unit)) != layer_iterator->second.end()) 
-		// и удаляем
-		layer_iterator->second.erase(unit_index);
-
 	// Удаляем в любом случае, так как попросили удалить
 	delete unit;
 }
@@ -442,24 +427,27 @@ const BattleField::BattleMap& BattleField::getClickableUnits() {
 	return mClickableUnits;
 }
 
-const BattleField::BattleMap& BattleField::getBattleMap() {
-	return mBattleField;
-}
-
 BattleField::~BattleField() {
 	BattleField::BattleMap::iterator    layer;
 	BattleField::UnitsOnLayer::iterator unit;
 
-	for (layer = mBattleField.begin();
-		layer != mBattleField.end();
-		++layer) 
-		// Удаляем все объекты в массиве из памяти
-		// Не трогаем clickable units, так как они
-		// содержат те же указатели
-		for (unit = layer->second.begin();
-			unit != layer->second.end();
-			++unit)
-			delete (*unit);
+	for (ShotsSet::iterator shot_iterator = mShots.begin(); shot_iterator != mShots.end(); ++shot_iterator)
+		delete *shot_iterator;
+	
+	for (PathCellsSet::iterator pathcell_iterator = mPathCells.begin(); pathcell_iterator != mPathCells.end(); ++pathcell_iterator)
+		delete *pathcell_iterator;
+
+	for (BackGroundCellsSet::iterator bgcell_iterator = mBackGroundCells.begin(); bgcell_iterator != mBackGroundCells.end(); ++bgcell_iterator)
+		delete *bgcell_iterator;
+	
+	for (EnemiesSet::iterator enemy_iterator = mEnemies.begin(); enemy_iterator != mEnemies.end(); ++enemy_iterator)
+		delete *enemy_iterator;
+
+	for (TowersSet::iterator tower_iterator = mTowers.begin(); tower_iterator != mTowers.end(); ++tower_iterator)
+		delete *tower_iterator;
+	
+	for (TowerSlotsSet::iterator slot_iterator = mTowerSlots.begin(); slot_iterator != mTowerSlots.end(); ++slot_iterator)
+		delete *slot_iterator;
 }
 
 
